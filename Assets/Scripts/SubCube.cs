@@ -1,6 +1,4 @@
-﻿#nullable enable
-
-using UnityEngine;
+﻿using UnityEngine;
 
 public class SubCube: MonoBehaviour {
   public int I { get; set; }

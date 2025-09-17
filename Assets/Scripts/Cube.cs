@@ -1,8 +1,9 @@
-#nullable enable
-
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class Cube: MonoBehaviour {
+  public static Cube Instance { get; private set; }
+
   private const float SubCubeSize = 1f;
   private const float SubCubeGap = 0.1f;
 
@@ -10,9 +11,23 @@ public class Cube: MonoBehaviour {
   [SerializeField]
   private int _size = 3;
   [SerializeField]
-  private SubCube _subCubePrefab = null!;
+  private SubCube _subCubePrefab;
 
-  private SubCube[][][] _subCubes = null!;
+  private SubCube[][][] _subCubes;
+  private SubCube _selectedSubCube;
+
+  public void SelectSubCube() {
+    Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+    RaycastHit hitInfo;
+
+    if (Physics.Raycast(ray, out hitInfo)) {
+      _selectedSubCube = hitInfo.collider.GetComponent<SubCube>();
+    }
+  }
+
+  public void UnselectSubCube() {
+    _selectedSubCube = null;
+  }
 
   private void Initialize() {
     _subCubes = new SubCube[_size][][];
@@ -45,5 +60,7 @@ public class Cube: MonoBehaviour {
 
   private void Awake() {
     Initialize();
+
+    Instance = this;
   }
 }
