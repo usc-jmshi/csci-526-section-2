@@ -15,8 +15,13 @@ public class Cube: MonoBehaviour {
 
   private SubCube[][][] _subCubes;
   private SubCube _selectedSubCube;
+  private bool _rotatingCube;
 
   public void SelectSubCube() {
+    if (_rotatingCube) {
+      return;
+    }
+
     Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
     RaycastHit hitInfo;
 
@@ -27,6 +32,24 @@ public class Cube: MonoBehaviour {
 
   public void UnselectSubCube() {
     _selectedSubCube = null;
+  }
+
+  public void StartCubeRotation() {
+    if (_selectedSubCube != null) {
+      return;
+    }
+
+    _rotatingCube = true;
+  }
+
+  public void EndCubeRotation() {
+    _rotatingCube = false;
+  }
+
+  public void Drag(Vector2 delta) {
+    if (_rotatingCube) {
+      transform.Rotate(delta.y, -delta.x, 0, Space.World);
+    }
   }
 
   private void Initialize() {
