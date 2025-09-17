@@ -1,0 +1,49 @@
+#nullable enable
+
+using UnityEngine;
+
+public class Cube: MonoBehaviour {
+  private const float SubCubeSize = 1f;
+  private const float SubCubeGap = 0.1f;
+
+  [Range(2, 10)]
+  [SerializeField]
+  private int _size = 3;
+  [SerializeField]
+  private SubCube _subCubePrefab = null!;
+
+  private SubCube[][][] _subCubes = null!;
+
+  private void Initialize() {
+    _subCubes = new SubCube[_size][][];
+    float bound = (_size - 1) / 2f;
+
+    for (int i = 0; i < _size; i++) {
+      _subCubes[i] = new SubCube[_size][];
+
+      for (int j = 0; j < _size; j++) {
+        bool border = i == 0 || i == _size - 1 || j == 0 || j == _size - 1;
+        _subCubes[i][j] = new SubCube[border ? _size : 2];
+
+        for (int k = 0; k < _subCubes[i][j].Length; k++) {
+          SubCube subCube = Instantiate(_subCubePrefab);
+          subCube.transform.parent = transform;
+          subCube.transform.localScale = new Vector3(SubCubeSize, SubCubeSize, SubCubeSize);
+          subCube.transform.localPosition = new Vector3(
+            (-bound + j) * (SubCubeSize + SubCubeGap),
+            (bound - i) * (SubCubeSize + SubCubeGap),
+            (-bound + k * (border ? 1 : _size - 1)) * (SubCubeSize + SubCubeGap)
+          );
+          subCube.I = i;
+          subCube.J = j;
+          subCube.K = k;
+          _subCubes[i][j][k] = subCube;
+        }
+      }
+    }
+  }
+
+  private void Awake() {
+    Initialize();
+  }
+}
