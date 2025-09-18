@@ -68,4 +68,24 @@ public static class Utils {
         }
     }
   }
+
+  public static bool GetShouldClockwiseUpdateSubCubes(Axis rotationAxis, bool flippedRotationAxis) {
+    switch (rotationAxis) {
+      case Axis.X: {
+          return !flippedRotationAxis;
+        }
+
+      case Axis.Y: {
+          return !flippedRotationAxis;
+        }
+
+      case Axis.Z: {
+          return flippedRotationAxis;
+        }
+
+      default: {
+          throw new InvalidOperationException("Invalid axis");
+        }
+    }
+  }
 }

@@ -29,6 +29,7 @@ public class Cube: MonoBehaviour {
   private SubCubeSelection? _selectedSubCube;
   private bool _rotatingCube;
   private Layer? _selectedLayer;
+  private float _totalLayerRotation;
 
   public void SelectSubCube() {
     if (_rotatingCube) {
@@ -68,11 +69,8 @@ public class Cube: MonoBehaviour {
   }
 
   public void UnselectSubCube() {
-    _selectedSubCube = null;
-
     if (_selectedLayer != null) {
-      // TODO: rotate to static configuration
-      // TODO: update SubCubes
+      RoundLayer();
 
       for (int i = _selectedLayer.Value.Transform.childCount - 1; i >= 0; i--) {
         _selectedLayer.Value.Transform.GetChild(i).parent = transform;
@@ -82,6 +80,8 @@ public class Cube: MonoBehaviour {
 
       _selectedLayer = null;
     }
+
+    _selectedSubCube = null;
   }
 
   public void StartCubeRotation() {
@@ -108,6 +108,108 @@ public class Cube: MonoBehaviour {
     if (_rotatingCube) {
       transform.Rotate(delta.y, -delta.x, 0, Space.World);
     }
+  }
+
+  private SubCube GetSubCube(int a, int b) {
+    switch (_selectedLayer.Value.RotationAxis) {
+      case Axis.X: {
+          return _subCubes[a][_selectedSubCube.Value.SubCube.J][b];
+        }
+
+      case Axis.Y: {
+          return _subCubes[_selectedSubCube.Value.SubCube.I][a][b];
+        }
+
+      case Axis.Z: {
+          return _subCubes[a][b][_selectedSubCube.Value.SubCube.K];
+        }
+
+      default: {
+          throw new InvalidOperationException("Invalid axis");
+        }
+    }
+  }
+
+  private void SetSubCube(int a, int b, SubCube subCube) {
+    switch (_selectedLayer.Value.RotationAxis) {
+      case Axis.X: {
+          subCube.I = a;
+          subCube.K = b;
+          _subCubes[a][_selectedSubCube.Value.SubCube.J][b] = subCube;
+
+          break;
+        }
+
+      case Axis.Y: {
+          subCube.J = a;
+          subCube.K = b;
+          _subCubes[_selectedSubCube.Value.SubCube.I][a][b] = subCube;
+
+          break;
+        }
+
+      case Axis.Z: {
+          subCube.I = a;
+          subCube.J = b;
+          _subCubes[a][b][_selectedSubCube.Value.SubCube.K] = subCube;
+
+          break;
+        }
+
+      default: {
+          throw new InvalidOperationException("Invalid axis");
+        }
+    }
+  }
+
+  private void UpdateSubCubes(int numTurns, bool flippedRotationAxis) {
+    SubCube[] subCubesToUpdate = new SubCube[4];
+    bool shouldClockwiseUpdateSubCubes = Utils.GetShouldClockwiseUpdateSubCubes(_selectedLayer.Value.RotationAxis, flippedRotationAxis);
+
+    for (int c = 0; c < numTurns; c++) {
+      for (int a = 0; a < _size / 2; a++) {
+        for (int b = a; b < _size - 1 - a; b++) {
+          subCubesToUpdate[0] = GetSubCube(a, b);
+
+          if (subCubesToUpdate[0] == null) {
+            return;
+          }
+
+          subCubesToUpdate[1] = GetSubCube(b, _size - 1 - a);
+          subCubesToUpdate[2] = GetSubCube(_size - 1 - a, _size - 1 - a - b);
+          subCubesToUpdate[3] = GetSubCube(_size - 1 - a - b, a);
+
+          if (shouldClockwiseUpdateSubCubes) {
+            SetSubCube(a, b, subCubesToUpdate[3]);
+            SetSubCube(b, _size - 1 - a, subCubesToUpdate[0]);
+            SetSubCube(_size - 1 - a, _size - 1 - a - b, subCubesToUpdate[1]);
+            SetSubCube(_size - 1 - a - b, a, subCubesToUpdate[2]);
+          } else {
+            SetSubCube(a, b, subCubesToUpdate[1]);
+            SetSubCube(b, _size - 1 - a, subCubesToUpdate[2]);
+            SetSubCube(_size - 1 - a, _size - 1 - a - b, subCubesToUpdate[3]);
+            SetSubCube(_size - 1 - a - b, a, subCubesToUpdate[0]);
+          }
+        }
+      }
+    }
+  }
+
+  private void RoundLayer() {
+    int numTurns = Mathf.RoundToInt(_totalLayerRotation / 90);
+    bool shouldFlipRotationAxis = Utils.GetShouldFlipRotationAxis(_selectedSubCube.Value.Side, _selectedLayer.Value.RotationAxis);
+    Matrix4x4 cubeToWorldInvT = new();
+
+    Assert.IsTrue(Utils.InverseTranspose3DAffine(transform.localToWorldMatrix, ref cubeToWorldInvT));
+
+    Vector3 cubeWorldRotationAxis = cubeToWorldInvT.GetColumn((int) _selectedLayer.Value.RotationAxis) * (shouldFlipRotationAxis ? -1 : 1);
+
+    // TODO: interpolate rotation over some amount of time
+    _selectedLayer.Value.Transform.Rotate(cubeWorldRotationAxis, numTurns * 90 - _totalLayerRotation, Space.World);
+
+    UpdateSubCubes(numTurns, shouldFlipRotationAxis);
+
+    _totalLayerRotation = 0;
   }
 
   private void SelectLayer(Vector2 delta) {
@@ -156,37 +258,18 @@ public class Cube: MonoBehaviour {
     float dot2 = Mathf.Abs(Vector3.Dot(cubeCameraAxis2, delta));
 
     Axis rotationAxis = dot1 > dot2 ? axis2 : axis1;
-
     GameObject layer = new();
+
+    _selectedLayer = new() {
+      Transform = layer.transform,
+      RotationAxis = rotationAxis
+    };
+
     layer.transform.parent = transform;
 
     for (int a = 0; a < _size; a++) {
       for (int b = 0; b < _size; b++) {
-        SubCube subCube;
-
-        switch (rotationAxis) {
-          case Axis.X: {
-              subCube = _subCubes[a][_selectedSubCube.Value.SubCube.J][b];
-
-              break;
-            }
-
-          case Axis.Y: {
-              subCube = _subCubes[_selectedSubCube.Value.SubCube.I][a][b];
-
-              break;
-            }
-
-          case Axis.Z: {
-              subCube = _subCubes[a][b][_selectedSubCube.Value.SubCube.K];
-
-              break;
-            }
-
-          default: {
-              throw new InvalidOperationException("Invalid axis");
-            }
-        }
+        SubCube subCube = GetSubCube(a, b);
 
         if (subCube == null) {
           continue;
@@ -195,11 +278,6 @@ public class Cube: MonoBehaviour {
         subCube.transform.parent = layer.transform;
       }
     }
-
-    _selectedLayer = new() {
-      Transform = layer.transform,
-      RotationAxis = rotationAxis
-    };
   }
 
   private void RotateLayer(Vector2 delta) {
@@ -216,7 +294,16 @@ public class Cube: MonoBehaviour {
     Vector3 cubeCameraDeltaAxis = cubeToCameraInvT.GetColumn((int) deltaAxis);
 
     // TODO: handle projective transformation?
-    _selectedLayer.Value.Transform.Rotate(cubeWorldRotationAxis, Vector3.Dot(delta, cubeCameraDeltaAxis), Space.World);
+    float rotation = Vector3.Dot(delta, cubeCameraDeltaAxis);
+    _totalLayerRotation = _totalLayerRotation + rotation;
+
+    if (_totalLayerRotation > 360) {
+      _totalLayerRotation -= 360;
+    } else if (_totalLayerRotation < 0) {
+      _totalLayerRotation += 360;
+    }
+
+    _selectedLayer.Value.Transform.Rotate(cubeWorldRotationAxis, rotation, Space.World);
   }
 
   private void Initialize() {
