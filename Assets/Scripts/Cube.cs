@@ -167,21 +167,18 @@ public class Cube: MonoBehaviour {
         switch (rotationAxis) {
           case Axis.X: {
               subCube = _subCubes[a][_selectedSubCube.Value.SubCube.J][b];
-              layer.name = $"LayerJ={_selectedSubCube.Value.SubCube.J}";
 
               break;
             }
 
           case Axis.Y: {
               subCube = _subCubes[_selectedSubCube.Value.SubCube.I][a][b];
-              layer.name = $"LayerI={_selectedSubCube.Value.SubCube.I}";
 
               break;
             }
 
           case Axis.Z: {
               subCube = _subCubes[a][b][_selectedSubCube.Value.SubCube.K];
-              layer.name = $"LayerK={_selectedSubCube.Value.SubCube.K}";
 
               break;
             }
