@@ -72,6 +72,7 @@ public class Cube: MonoBehaviour {
 
     if (_selectedLayer != null) {
       // TODO: rotate to static configuration
+      // TODO: update SubCubes
 
       for (int i = _selectedLayer.Value.Transform.childCount - 1; i >= 0; i--) {
         _selectedLayer.Value.Transform.GetChild(i).parent = transform;
@@ -150,6 +151,7 @@ public class Cube: MonoBehaviour {
     Vector3 cubeCameraAxis1 = cubeToCameraInvT.GetColumn((int) axis1);
     Vector3 cubeCameraAxis2 = cubeToCameraInvT.GetColumn((int) axis2);
 
+    // TODO: handle projective transformation?
     float dot1 = Mathf.Abs(Vector3.Dot(cubeCameraAxis1, delta));
     float dot2 = Mathf.Abs(Vector3.Dot(cubeCameraAxis2, delta));
 
@@ -216,6 +218,7 @@ public class Cube: MonoBehaviour {
     Vector3 cubeWorldRotationAxis = cubeToWorldInvT.GetColumn((int) _selectedLayer.Value.RotationAxis) * (shouldFlipRotationAxis ? -1 : 1);
     Vector3 cubeCameraDeltaAxis = cubeToCameraInvT.GetColumn((int) deltaAxis);
 
+    // TODO: handle projective transformation?
     _selectedLayer.Value.Transform.Rotate(cubeWorldRotationAxis, Vector3.Dot(delta, cubeCameraDeltaAxis), Space.World);
   }
 
