@@ -16,8 +16,16 @@ public class InputHandler: MonoBehaviour {
       Cube.Instance.EndCubeRotation();
     }
 
-    Cube.Instance.Drag(Mouse.current.delta.ReadValue());
+    Vector2 mouseDelta = Mouse.current.delta.ReadValue();
 
-    CameraManager.Instance.Zoom(Mouse.current.scroll.y.ReadValue());
+    if (mouseDelta.sqrMagnitude > 0) {
+      Cube.Instance.Drag(mouseDelta);
+    }
+
+    float scrollDelta = Mouse.current.scroll.y.ReadValue();
+
+    if (scrollDelta > 0) {
+      CameraManager.Instance.Zoom(Mouse.current.scroll.y.ReadValue());
+    }
   }
 }
