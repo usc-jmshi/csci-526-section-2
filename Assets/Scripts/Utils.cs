@@ -110,7 +110,7 @@ public static class Utils {
         }
 
       case Square.Orange: {
-          return new Color(1, 0.65f, 0, 1);
+          return new Color(1, 0.39f, 0, 1);
         }
 
       case Square.Green: {
