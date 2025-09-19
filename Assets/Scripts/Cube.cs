@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -7,18 +8,19 @@ using UnityEngine.InputSystem;
 public class Cube: MonoBehaviour {
   private struct SubCubeSelection {
     public SubCube SubCube { get; set; }
-    public Side Side { get; set; }
+    public Side Side { get; set; } // Side is in Cube space
   }
 
   private struct Layer {
     public Transform Transform { get; set; }
-    public Axis RotationAxis { get; set; }
+    public Axis RotationAxis { get; set; } // Axis is in Cube space
   }
 
   public static Cube Instance { get; private set; }
 
   private const float SubCubeSize = 1f;
   private const float SubCubeGap = 0.1f;
+  private const float RoundLayerDuration = 0.1f;
 
   [Range(2, 10)]
   [SerializeField]
@@ -33,9 +35,10 @@ public class Cube: MonoBehaviour {
   private bool _rotatingCube;
   private Layer? _selectedLayer;
   private float _totalLayerRotation;
+  private Coroutine _unselectCoroutine;
 
   public void SelectSubCube() {
-    if (_rotatingCube) {
+    if (_rotatingCube || _selectedSubCube != null || _selectedLayer != null || _unselectCoroutine != null) {
       return;
     }
 
@@ -71,24 +74,16 @@ public class Cube: MonoBehaviour {
     }
   }
 
-  public void UnselectSubCube() {
-    if (_selectedLayer != null) {
-      RoundLayer();
-
-      for (int i = _selectedLayer.Value.Transform.childCount - 1; i >= 0; i--) {
-        _selectedLayer.Value.Transform.GetChild(i).parent = transform;
-      }
-
-      Destroy(_selectedLayer.Value.Transform.gameObject);
-
-      _selectedLayer = null;
+  public void Unselect() {
+    if (_unselectCoroutine != null) {
+      return;
     }
 
-    _selectedSubCube = null;
+    _unselectCoroutine = StartCoroutine(UnselectCoroutine());
   }
 
   public void StartCubeRotation() {
-    if (_selectedSubCube != null) {
+    if (_selectedSubCube != null || _selectedLayer != null) {
       return;
     }
 
@@ -100,7 +95,7 @@ public class Cube: MonoBehaviour {
   }
 
   public void Drag(Vector2 delta) {
-    if (_selectedSubCube != null) {
+    if (_selectedSubCube != null && _unselectCoroutine == null) {
       if (_selectedLayer == null) {
         SelectLayer(delta);
       } else {
@@ -200,7 +195,7 @@ public class Cube: MonoBehaviour {
     }
   }
 
-  private void RoundLayer() {
+  private IEnumerator RoundLayer() {
     int numTurns = Mathf.RoundToInt(_totalLayerRotation / 90);
     bool shouldFlipRotationAxis = Utils.GetShouldFlipRotationAxis(_selectedSubCube.Value.Side, _selectedLayer.Value.RotationAxis);
     Matrix4x4 cubeToWorldInvT = new();
@@ -209,12 +204,42 @@ public class Cube: MonoBehaviour {
 
     Vector3 cubeWorldRotationAxis = cubeToWorldInvT.GetColumn((int) _selectedLayer.Value.RotationAxis) * (shouldFlipRotationAxis ? -1 : 1);
 
-    // TODO: interpolate rotation over some amount of time
-    _selectedLayer.Value.Transform.Rotate(cubeWorldRotationAxis, numTurns * 90 - _totalLayerRotation, Space.World);
+    float timer = 0;
+    float remainingRotation = numTurns * 90 - _totalLayerRotation;
+
+    while (timer < RoundLayerDuration) {
+      float deltaRotation = (numTurns * 90 - _totalLayerRotation) * Time.deltaTime / RoundLayerDuration;
+
+      _selectedLayer.Value.Transform.Rotate(cubeWorldRotationAxis, deltaRotation, Space.World);
+
+      timer += Time.deltaTime;
+      remainingRotation -= deltaRotation;
+
+      yield return null;
+    }
+
+    _selectedLayer.Value.Transform.Rotate(cubeWorldRotationAxis, remainingRotation, Space.World);
 
     UpdateSubCubes(numTurns, shouldFlipRotationAxis);
 
     _totalLayerRotation = 0;
+  }
+
+  private IEnumerator UnselectCoroutine() {
+    if (_selectedLayer != null) {
+      yield return RoundLayer();
+
+      for (int i = _selectedLayer.Value.Transform.childCount - 1; i >= 0; i--) {
+        _selectedLayer.Value.Transform.GetChild(i).parent = transform;
+      }
+
+      Destroy(_selectedLayer.Value.Transform.gameObject);
+
+      _selectedLayer = null;
+    }
+
+    _selectedSubCube = null;
+    _unselectCoroutine = null;
   }
 
   private void SelectLayer(Vector2 delta) {

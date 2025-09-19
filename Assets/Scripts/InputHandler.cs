@@ -7,7 +7,7 @@ public class InputHandler: MonoBehaviour {
     if (Mouse.current.leftButton.wasPressedThisFrame) {
       Cube.Instance.SelectSubCube();
     } else if (Mouse.current.leftButton.wasReleasedThisFrame) {
-      Cube.Instance.UnselectSubCube();
+      Cube.Instance.Unselect();
     }
 
     if (Mouse.current.rightButton.wasPressedThisFrame) {
@@ -16,6 +16,7 @@ public class InputHandler: MonoBehaviour {
       Cube.Instance.EndCubeRotation();
     }
 
+    // TODO: minimum threshold?
     Vector2 mouseDelta = Mouse.current.delta.ReadValue();
 
     if (mouseDelta.sqrMagnitude > 0) {

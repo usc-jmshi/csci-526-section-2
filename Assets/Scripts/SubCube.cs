@@ -13,9 +13,8 @@ public class SubCube: MonoBehaviour {
   [SerializeField] private MeshRenderer _nearMR;
   [SerializeField] private MeshRenderer _farMR;
 
+  // Side is in Cube space
   public void SetSquare(Side side, Square square) {
-    Color color = Utils.GetColor(square);
-
     Matrix4x4 subCubeToCubeInvT = new();
 
     Assert.IsTrue(Utils.InverseTranspose3DAffine(Cube.Instance.transform.worldToLocalMatrix * transform.localToWorldMatrix, ref subCubeToCubeInvT));
@@ -41,6 +40,8 @@ public class SubCube: MonoBehaviour {
     }
 
     MaterialPropertyBlock matPropBlock = new();
+    Color color = Utils.GetColor(square);
+
     mr.GetPropertyBlock(matPropBlock);
     matPropBlock.SetColor(Utils.BaseColorShaderPropID, color);
     mr.SetPropertyBlock(matPropBlock);
