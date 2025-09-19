@@ -6,15 +6,32 @@ public class SubCube: MonoBehaviour {
   public int J { get; set; }
   public int K { get; set; }
 
-  [SerializeField] private MeshRenderer _topMR;
-  [SerializeField] private MeshRenderer _bottomMR;
-  [SerializeField] private MeshRenderer _leftMR;
-  [SerializeField] private MeshRenderer _rightMR;
-  [SerializeField] private MeshRenderer _nearMR;
-  [SerializeField] private MeshRenderer _farMR;
+  [SerializeField] private MeshRenderer[] _mrs;
 
-  // Side is in Cube space
-  public void SetSquare(Side side, Square square) {
+  private readonly Square[] _squares = new Square[6];
+
+  // Input is in Cube space, need to transform to local SubCube space
+  public void SetSquare(Side cubeSide, Square square) {
+    Side subCubeSide = CubeSideToSubCubeSide(cubeSide);
+
+    MaterialPropertyBlock matPropBlock = new();
+    Color color = Utils.GetColor(square);
+
+    _mrs[(int) subCubeSide].GetPropertyBlock(matPropBlock);
+    matPropBlock.SetColor(Utils.BaseColorShaderPropID, color);
+    _mrs[(int) subCubeSide].SetPropertyBlock(matPropBlock);
+
+    _squares[(int) subCubeSide] = square;
+  }
+
+  // Input is in Cube space, need to transform to local SubCube space
+  public Square GetSquare(Side cubeSide) {
+    Side subCubeSide = CubeSideToSubCubeSide(cubeSide);
+
+    return _squares[(int) subCubeSide];
+  }
+
+  private Side CubeSideToSubCubeSide(Side cubeSide) {
     Matrix4x4 subCubeToCubeInvT = new();
 
     Assert.IsTrue(Utils.InverseTranspose3DAffine(Cube.Instance.transform.worldToLocalMatrix * transform.localToWorldMatrix, ref subCubeToCubeInvT));
@@ -23,27 +40,22 @@ public class SubCube: MonoBehaviour {
     Vector3 subCubeCubeYAxis = subCubeToCubeInvT.GetColumn(1);
     Vector3 subCubeCubeZAxis = subCubeToCubeInvT.GetColumn(2);
 
-    Vector3 cubeSideNormal = Utils.GetLocalNormal(side);
+    Vector3 cubeSideNormal = Utils.GetLocalNormal(cubeSide);
 
     float xDot = Mathf.Abs(Vector3.Dot(subCubeCubeXAxis, cubeSideNormal));
     float yDot = Mathf.Abs(Vector3.Dot(subCubeCubeYAxis, cubeSideNormal));
     float zDot = Mathf.Abs(Vector3.Dot(subCubeCubeZAxis, cubeSideNormal));
 
-    MeshRenderer mr;
+    Side subCubeSide;
 
     if (xDot > yDot && xDot > zDot) {
-      mr = Vector3.Dot(subCubeCubeXAxis, cubeSideNormal) > 0 ? _rightMR : _leftMR;
+      subCubeSide = Vector3.Dot(subCubeCubeXAxis, cubeSideNormal) > 0 ? Side.Right : Side.Left;
     } else if (yDot > zDot) {
-      mr = Vector3.Dot(subCubeCubeYAxis, cubeSideNormal) > 0 ? _topMR : _bottomMR;
+      subCubeSide = Vector3.Dot(subCubeCubeYAxis, cubeSideNormal) > 0 ? Side.Top : Side.Bottom;
     } else {
-      mr = Vector3.Dot(subCubeCubeZAxis, cubeSideNormal) > 0 ? _farMR : _nearMR;
+      subCubeSide = Vector3.Dot(subCubeCubeZAxis, cubeSideNormal) > 0 ? Side.Far : Side.Near;
     }
 
-    MaterialPropertyBlock matPropBlock = new();
-    Color color = Utils.GetColor(square);
-
-    mr.GetPropertyBlock(matPropBlock);
-    matPropBlock.SetColor(Utils.BaseColorShaderPropID, color);
-    mr.SetPropertyBlock(matPropBlock);
+    return subCubeSide;
   }
 }

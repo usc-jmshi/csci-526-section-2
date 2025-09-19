@@ -481,12 +481,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee78bae7a017af0498175dd78b828aa1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _topMR: {fileID: 4774870819873778057}
-  _bottomMR: {fileID: 6229151738413193276}
-  _leftMR: {fileID: 7815253752216511270}
-  _rightMR: {fileID: 838233190506734121}
-  _nearMR: {fileID: 7891008014218632043}
-  _farMR: {fileID: 2240085431588369097}
+  _mrs:
+  - {fileID: 4774870819873778057}
+  - {fileID: 6229151738413193276}
+  - {fileID: 7815253752216511270}
+  - {fileID: 838233190506734121}
+  - {fileID: 7891008014218632043}
+  - {fileID: 0}
 --- !u!65 &4831775614948728116
 BoxCollider:
   m_ObjectHideFlags: 0

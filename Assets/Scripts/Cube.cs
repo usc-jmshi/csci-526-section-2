@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.InputSystem;
@@ -27,8 +26,6 @@ public class Cube: MonoBehaviour {
   private int _size = 3;
   [SerializeField]
   private SubCube _subCubePrefab;
-
-  private readonly Dictionary<Side, Square[,]> _squares = new();
 
   private SubCube[,,] _subCubes;
   private SubCubeSelection? _selectedSubCube;
@@ -188,8 +185,6 @@ public class Cube: MonoBehaviour {
             SetSubCube(_size - 1 - a, _size - 1 - a - b, subCubesToUpdate[3]);
             SetSubCube(_size - 1 - a - b, a, subCubesToUpdate[0]);
           }
-
-          // TODO: update squares
         }
       }
     }
@@ -366,49 +361,41 @@ public class Cube: MonoBehaviour {
     }
 
     foreach (Side side in Enum.GetValues(typeof(Side))) {
-      _squares[side] = new Square[_size, _size];
-
       // TODO: remove/update
       for (int a = 0; a < _size; a++) {
         for (int b = 0; b < _size; b++) {
           switch (side) {
             case Side.Top: {
-                _squares[side][a, b] = Square.Red;
                 _subCubes[0, a, b].SetSquare(side, Square.Red);
 
                 break;
               }
 
             case Side.Bottom: {
-                _squares[side][a, b] = Square.Blue;
                 _subCubes[_size - 1, a, b].SetSquare(side, Square.Blue);
 
                 break;
               }
 
             case Side.Left: {
-                _squares[side][a, b] = Square.Green;
                 _subCubes[a, 0, b].SetSquare(side, Square.Green);
 
                 break;
               }
 
             case Side.Right: {
-                _squares[side][a, b] = Square.Yellow;
                 _subCubes[a, _size - 1, b].SetSquare(side, Square.Yellow);
 
                 break;
               }
 
             case Side.Near: {
-                _squares[side][a, b] = Square.Orange;
                 _subCubes[a, b, 0].SetSquare(side, Square.Orange);
 
                 break;
               }
 
             case Side.Far: {
-                _squares[side][a, b] = Square.White;
                 _subCubes[a, b, _size - 1].SetSquare(side, Square.White);
 
                 break;
