@@ -39,6 +39,7 @@ public class Cube: MonoBehaviour {
 
     Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
 
+    // TODO: avoid interior
     if (Physics.Raycast(ray, out RaycastHit hitInfo) && hitInfo.collider.TryGetComponent(out SubCube subCube)) {
       Matrix4x4 cubeToWorldInvT = new();
 
