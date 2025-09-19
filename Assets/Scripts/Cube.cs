@@ -21,9 +21,6 @@ public class Cube: MonoBehaviour {
   private const float SubCubeGap = 0.1f;
   private const float RoundLayerDuration = 0.1f;
 
-  [Range(2, 10)]
-  [SerializeField]
-  private int _size = 3;
   [SerializeField]
   private SubCube _subCubePrefab;
 
@@ -33,6 +30,7 @@ public class Cube: MonoBehaviour {
   private Layer? _selectedLayer;
   private float _totalLayerRotation;
   private Coroutine _unselectCoroutine;
+  private Level _level;
 
   public void SelectSubCube() {
     if (_rotatingCube || _selectedSubCube != null || _selectedLayer != null || _unselectCoroutine != null) {
@@ -162,28 +160,28 @@ public class Cube: MonoBehaviour {
     bool shouldClockwiseUpdateSubCubes = Utils.GetShouldClockwiseUpdateSubCubes(_selectedLayer.Value.RotationAxis, flippedRotationAxis);
 
     for (int c = 0; c < numTurns; c++) {
-      for (int a = 0; a < _size / 2; a++) {
-        for (int b = a; b < _size - 1 - a; b++) {
+      for (int a = 0; a < _level.Size / 2; a++) {
+        for (int b = a; b < _level.Size - 1 - a; b++) {
           subCubesToUpdate[0] = GetSubCube(a, b);
 
           if (subCubesToUpdate[0] == null) {
             return;
           }
 
-          subCubesToUpdate[1] = GetSubCube(b, _size - 1 - a);
-          subCubesToUpdate[2] = GetSubCube(_size - 1 - a, _size - 1 - a - b);
-          subCubesToUpdate[3] = GetSubCube(_size - 1 - a - b, a);
+          subCubesToUpdate[1] = GetSubCube(b, _level.Size - 1 - a);
+          subCubesToUpdate[2] = GetSubCube(_level.Size - 1 - a, _level.Size - 1 - a - b);
+          subCubesToUpdate[3] = GetSubCube(_level.Size - 1 - a - b, a);
 
           if (shouldClockwiseUpdateSubCubes) {
             SetSubCube(a, b, subCubesToUpdate[3]);
-            SetSubCube(b, _size - 1 - a, subCubesToUpdate[0]);
-            SetSubCube(_size - 1 - a, _size - 1 - a - b, subCubesToUpdate[1]);
-            SetSubCube(_size - 1 - a - b, a, subCubesToUpdate[2]);
+            SetSubCube(b, _level.Size - 1 - a, subCubesToUpdate[0]);
+            SetSubCube(_level.Size - 1 - a, _level.Size - 1 - a - b, subCubesToUpdate[1]);
+            SetSubCube(_level.Size - 1 - a - b, a, subCubesToUpdate[2]);
           } else {
             SetSubCube(a, b, subCubesToUpdate[1]);
-            SetSubCube(b, _size - 1 - a, subCubesToUpdate[2]);
-            SetSubCube(_size - 1 - a, _size - 1 - a - b, subCubesToUpdate[3]);
-            SetSubCube(_size - 1 - a - b, a, subCubesToUpdate[0]);
+            SetSubCube(b, _level.Size - 1 - a, subCubesToUpdate[2]);
+            SetSubCube(_level.Size - 1 - a, _level.Size - 1 - a - b, subCubesToUpdate[3]);
+            SetSubCube(_level.Size - 1 - a - b, a, subCubesToUpdate[0]);
           }
         }
       }
@@ -292,8 +290,8 @@ public class Cube: MonoBehaviour {
 
     layer.transform.parent = transform;
 
-    for (int a = 0; a < _size; a++) {
-      for (int b = 0; b < _size; b++) {
+    for (int a = 0; a < _level.Size; a++) {
+      for (int b = 0; b < _level.Size; b++) {
         SubCube subCube = GetSubCube(a, b);
 
         if (subCube == null) {
@@ -332,15 +330,15 @@ public class Cube: MonoBehaviour {
   }
 
   private void Initialize() {
-    _subCubes = new SubCube[_size, _size, _size];
-    float bound = (_size - 1) / 2f;
+    _subCubes = new SubCube[_level.Size, _level.Size, _level.Size];
+    float bound = (_level.Size - 1) / 2f;
 
-    for (int i = 0; i < _size; i++) {
-      for (int j = 0; j < _size; j++) {
-        bool border = i == 0 || i == _size - 1 || j == 0 || j == _size - 1;
+    for (int i = 0; i < _level.Size; i++) {
+      for (int j = 0; j < _level.Size; j++) {
+        bool border = i == 0 || i == _level.Size - 1 || j == 0 || j == _level.Size - 1;
 
-        for (int k = 0; k < _size; k++) {
-          if (!border && k != 0 && k != _size - 1) {
+        for (int k = 0; k < _level.Size; k++) {
+          if (!border && k != 0 && k != _level.Size - 1) {
             continue;
           }
 
@@ -360,58 +358,15 @@ public class Cube: MonoBehaviour {
       }
     }
 
-    foreach (Side side in Enum.GetValues(typeof(Side))) {
-      // TODO: remove/update
-      for (int a = 0; a < _size; a++) {
-        for (int b = 0; b < _size; b++) {
-          switch (side) {
-            case Side.Top: {
-                _subCubes[0, a, b].SetSquare(side, Square.Red);
-
-                break;
-              }
-
-            case Side.Bottom: {
-                _subCubes[_size - 1, a, b].SetSquare(side, Square.Blue);
-
-                break;
-              }
-
-            case Side.Left: {
-                _subCubes[a, 0, b].SetSquare(side, Square.Green);
-
-                break;
-              }
-
-            case Side.Right: {
-                _subCubes[a, _size - 1, b].SetSquare(side, Square.Yellow);
-
-                break;
-              }
-
-            case Side.Near: {
-                _subCubes[a, b, 0].SetSquare(side, Square.Orange);
-
-                break;
-              }
-
-            case Side.Far: {
-                _subCubes[a, b, _size - 1].SetSquare(side, Square.White);
-
-                break;
-              }
-
-            default: {
-                throw new InvalidOperationException("Invalid side");
-              }
-          }
-        }
-      }
-    }
+    _level.InitializeSubCubes(_subCubes);
   }
 
   private void Awake() {
     Instance = this;
+
+    if (!TryGetComponent(out _level)) {
+      _level = gameObject.AddComponent<DefaultLevel>();
+    }
 
     Initialize();
   }

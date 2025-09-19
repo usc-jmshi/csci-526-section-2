@@ -487,7 +487,7 @@ MonoBehaviour:
   - {fileID: 7815253752216511270}
   - {fileID: 838233190506734121}
   - {fileID: 7891008014218632043}
-  - {fileID: 0}
+  - {fileID: 2240085431588369097}
 --- !u!65 &4831775614948728116
 BoxCollider:
   m_ObjectHideFlags: 0
