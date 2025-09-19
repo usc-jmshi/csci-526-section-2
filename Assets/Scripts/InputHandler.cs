@@ -24,7 +24,7 @@ public class InputHandler: MonoBehaviour {
 
     float scrollDelta = Mouse.current.scroll.y.ReadValue();
 
-    if (scrollDelta > 0) {
+    if (Mathf.Abs(scrollDelta) > 0) {
       CameraManager.Instance.Zoom(Mouse.current.scroll.y.ReadValue());
     }
   }
