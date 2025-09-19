@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.InputSystem;
@@ -25,7 +26,9 @@ public class Cube: MonoBehaviour {
   [SerializeField]
   private SubCube _subCubePrefab;
 
-  private SubCube[][][] _subCubes;
+  private readonly Dictionary<Side, Square[,]> _squares = new();
+
+  private SubCube[,,] _subCubes;
   private SubCubeSelection? _selectedSubCube;
   private bool _rotatingCube;
   private Layer? _selectedLayer;
@@ -113,15 +116,15 @@ public class Cube: MonoBehaviour {
   private SubCube GetSubCube(int a, int b) {
     switch (_selectedLayer.Value.RotationAxis) {
       case Axis.X: {
-          return _subCubes[a][_selectedSubCube.Value.SubCube.J][b];
+          return _subCubes[a, _selectedSubCube.Value.SubCube.J, b];
         }
 
       case Axis.Y: {
-          return _subCubes[_selectedSubCube.Value.SubCube.I][a][b];
+          return _subCubes[_selectedSubCube.Value.SubCube.I, a, b];
         }
 
       case Axis.Z: {
-          return _subCubes[a][b][_selectedSubCube.Value.SubCube.K];
+          return _subCubes[a, b, _selectedSubCube.Value.SubCube.K];
         }
 
       default: {
@@ -135,7 +138,7 @@ public class Cube: MonoBehaviour {
       case Axis.X: {
           subCube.I = a;
           subCube.K = b;
-          _subCubes[a][_selectedSubCube.Value.SubCube.J][b] = subCube;
+          _subCubes[a, _selectedSubCube.Value.SubCube.J, b] = subCube;
 
           break;
         }
@@ -143,7 +146,7 @@ public class Cube: MonoBehaviour {
       case Axis.Y: {
           subCube.J = a;
           subCube.K = b;
-          _subCubes[_selectedSubCube.Value.SubCube.I][a][b] = subCube;
+          _subCubes[_selectedSubCube.Value.SubCube.I, a, b] = subCube;
 
           break;
         }
@@ -151,7 +154,7 @@ public class Cube: MonoBehaviour {
       case Axis.Z: {
           subCube.I = a;
           subCube.J = b;
-          _subCubes[a][b][_selectedSubCube.Value.SubCube.K] = subCube;
+          _subCubes[a, b, _selectedSubCube.Value.SubCube.K] = subCube;
 
           break;
         }
@@ -190,6 +193,8 @@ public class Cube: MonoBehaviour {
             SetSubCube(_size - 1 - a, _size - 1 - a - b, subCubesToUpdate[3]);
             SetSubCube(_size - 1 - a - b, a, subCubesToUpdate[0]);
           }
+
+          // TODO: update squares
         }
       }
     }
@@ -307,15 +312,12 @@ public class Cube: MonoBehaviour {
   }
 
   private void Initialize() {
-    _subCubes = new SubCube[_size][][];
+    _subCubes = new SubCube[_size, _size, _size];
     float bound = (_size - 1) / 2f;
 
     for (int i = 0; i < _size; i++) {
-      _subCubes[i] = new SubCube[_size][];
-
       for (int j = 0; j < _size; j++) {
         bool border = i == 0 || i == _size - 1 || j == 0 || j == _size - 1;
-        _subCubes[i][j] = new SubCube[_size];
 
         for (int k = 0; k < _size; k++) {
           if (!border && k != 0 && k != _size - 1) {
@@ -333,15 +335,72 @@ public class Cube: MonoBehaviour {
           subCube.I = i;
           subCube.J = j;
           subCube.K = k;
-          _subCubes[i][j][k] = subCube;
+          _subCubes[i, j, k] = subCube;
+        }
+      }
+    }
+
+    foreach (Side side in Enum.GetValues(typeof(Side))) {
+      _squares[side] = new Square[_size, _size];
+
+      // TODO: remove/update
+      for (int a = 0; a < _size; a++) {
+        for (int b = 0; b < _size; b++) {
+          switch (side) {
+            case Side.Top: {
+                _squares[side][a, b] = Square.Red;
+                _subCubes[0, a, b].SetSquare(side, Square.Red);
+
+                break;
+              }
+
+            case Side.Bottom: {
+                _squares[side][a, b] = Square.Blue;
+                _subCubes[_size - 1, a, b].SetSquare(side, Square.Blue);
+
+                break;
+              }
+
+            case Side.Left: {
+                _squares[side][a, b] = Square.Green;
+                _subCubes[a, 0, b].SetSquare(side, Square.Green);
+
+                break;
+              }
+
+            case Side.Right: {
+                _squares[side][a, b] = Square.Yellow;
+                _subCubes[a, _size - 1, b].SetSquare(side, Square.Yellow);
+
+                break;
+              }
+
+            case Side.Near: {
+                _squares[side][a, b] = Square.Orange;
+                _subCubes[a, b, 0].SetSquare(side, Square.Orange);
+
+                break;
+              }
+
+            case Side.Far: {
+                _squares[side][a, b] = Square.White;
+                _subCubes[a, b, _size - 1].SetSquare(side, Square.White);
+
+                break;
+              }
+
+            default: {
+                throw new InvalidOperationException("Invalid side");
+              }
+          }
         }
       }
     }
   }
 
   private void Awake() {
-    Initialize();
-
     Instance = this;
+
+    Initialize();
   }
 }
