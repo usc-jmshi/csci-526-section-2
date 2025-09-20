@@ -3,43 +3,43 @@
 public class DefaultLevel: Level {
   public override int Size => 3;
 
-  public override StartSubCube InitializeSubCubes(SubCube[,,] subCubes) {
-    foreach (Side side in Enum.GetValues(typeof(Side))) {
+  public override Start InitializeSubCubes(SubCube[,,] subCubes) {
+    foreach (Side cubeSide in Enum.GetValues(typeof(Side))) {
       for (int a = 0; a < Size; a++) {
         for (int b = 0; b < Size; b++) {
-          switch (side) {
+          switch (cubeSide) {
             case Side.Top: {
-                subCubes[0, a, b].SetSquare(side, Square.Red);
+                subCubes[0, a, b].SetSquare(cubeSide, Square.Red);
 
                 break;
               }
 
             case Side.Bottom: {
-                subCubes[Size - 1, a, b].SetSquare(side, Square.Blue);
+                subCubes[Size - 1, a, b].SetSquare(cubeSide, Square.Blue);
 
                 break;
               }
 
             case Side.Left: {
-                subCubes[a, 0, b].SetSquare(side, Square.Green);
+                subCubes[a, 0, b].SetSquare(cubeSide, Square.Green);
 
                 break;
               }
 
             case Side.Right: {
-                subCubes[a, Size - 1, b].SetSquare(side, Square.Yellow);
+                subCubes[a, Size - 1, b].SetSquare(cubeSide, Square.Yellow);
 
                 break;
               }
 
             case Side.Near: {
-                subCubes[a, b, 0].SetSquare(side, Square.Orange);
+                subCubes[a, b, 0].SetSquare(cubeSide, Square.Orange);
 
                 break;
               }
 
             case Side.Far: {
-                subCubes[a, b, Size - 1].SetSquare(side, Square.White);
+                subCubes[a, b, Size - 1].SetSquare(cubeSide, Square.White);
 
                 break;
               }

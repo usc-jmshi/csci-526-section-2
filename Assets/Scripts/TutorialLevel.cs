@@ -2,7 +2,7 @@
   public override int Size => 3;
 
   // TODO: update
-  public override StartSubCube InitializeSubCubes(SubCube[,,] subCubes) {
+  public override Start InitializeSubCubes(SubCube[,,] subCubes) {
     subCubes[0, 0, 0].SetSquare(Side.Near, Square.Red);
 
     subCubes[0, 0, Size - 1].SetSquare(Side.Top, Square.Blue);

@@ -1,12 +1,12 @@
 ﻿using UnityEngine;
 
 public abstract class Level: MonoBehaviour {
-  public struct StartSubCube {
+  public struct Start {
     public SubCube SubCube;
     public Side SubCubeSide;
   }
 
   public abstract int Size { get; }
 
-  public abstract StartSubCube InitializeSubCubes(SubCube[,,] subCubes);
+  public abstract Start InitializeSubCubes(SubCube[,,] subCubes);
 }

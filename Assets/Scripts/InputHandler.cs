@@ -28,5 +28,9 @@ public class InputHandler: MonoBehaviour {
     if (Mathf.Abs(scrollDelta) > 0) {
       CameraManager.Instance.Zoom(Mouse.current.scroll.y.ReadValue());
     }
+
+    if (Keyboard.current.spaceKey.wasPressedThisFrame) {
+      Cube.Instance.Submit();
+    }
   }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.InputSystem;
@@ -7,12 +8,12 @@ using UnityEngine.InputSystem;
 public class Cube: MonoBehaviour {
   private struct SubCubeSelection {
     public SubCube SubCube { get; set; }
-    public Side Side { get; set; } // Side is in Cube space
+    public Side CubeSide { get; set; }
   }
 
-  private struct Layer {
+  private struct LayerSelection {
     public Transform Transform { get; set; }
-    public Axis RotationAxis { get; set; } // Axis is in Cube space
+    public Axis CubeRotationAxis { get; set; }
   }
 
   public static Cube Instance { get; private set; }
@@ -27,10 +28,11 @@ public class Cube: MonoBehaviour {
   private SubCube[,,] _subCubes;
   private SubCubeSelection? _selectedSubCube;
   private bool _rotatingCube;
-  private Layer? _selectedLayer;
+  private LayerSelection? _selectedLayer;
   private float _totalLayerRotation;
   private Coroutine _unselectCoroutine;
   private Level _level;
+  private Level.Start _start;
 
   public void SelectSubCube() {
     if (_rotatingCube || _selectedSubCube != null || _selectedLayer != null || _unselectCoroutine != null) {
@@ -53,19 +55,19 @@ public class Cube: MonoBehaviour {
       float yDot = Mathf.Abs(Vector3.Dot(cubeWorldYAxis, hitInfo.normal));
       float zDot = Mathf.Abs(Vector3.Dot(cubeWorldZAxis, hitInfo.normal));
 
-      Side side;
+      Side cubeSide;
 
       if (xDot > yDot && xDot > zDot) {
-        side = Vector3.Dot(cubeWorldXAxis, hitInfo.normal) > 0 ? Side.Right : Side.Left;
+        cubeSide = Vector3.Dot(cubeWorldXAxis, hitInfo.normal) > 0 ? Side.Right : Side.Left;
       } else if (yDot > zDot) {
-        side = Vector3.Dot(cubeWorldYAxis, hitInfo.normal) > 0 ? Side.Top : Side.Bottom;
+        cubeSide = Vector3.Dot(cubeWorldYAxis, hitInfo.normal) > 0 ? Side.Top : Side.Bottom;
       } else {
-        side = Vector3.Dot(cubeWorldZAxis, hitInfo.normal) > 0 ? Side.Far : Side.Near;
+        cubeSide = Vector3.Dot(cubeWorldZAxis, hitInfo.normal) > 0 ? Side.Far : Side.Near;
       }
 
       _selectedSubCube = new() {
         SubCube = subCube,
-        Side = side
+        CubeSide = cubeSide
       };
     }
   }
@@ -104,8 +106,133 @@ public class Cube: MonoBehaviour {
     }
   }
 
+  public void Submit() {
+    if (_selectedLayer != null || _unselectCoroutine != null) {
+      return;
+    }
+
+    Side startCubeSide = _start.SubCube.SubCubeSideToCubeSide(_start.SubCubeSide);
+    SubCubeSelection startNode = new() {
+      SubCube = _start.SubCube,
+      CubeSide = startCubeSide
+    };
+
+    Queue<SubCubeSelection> bfsQueue = new();
+    Square square = _start.SubCube.GetSquare(startCubeSide);
+    bool[,,,] seen = new bool[_level.Size, _level.Size, _level.Size, Enum.GetValues(typeof(Side)).Length];
+    bool pass = false;
+
+    bfsQueue.Enqueue(startNode);
+
+    while (bfsQueue.Count > 0) {
+      SubCubeSelection node = bfsQueue.Dequeue();
+
+      seen[node.SubCube.I, node.SubCube.J, node.SubCube.K, (int) node.CubeSide] = true;
+
+      if (node.SubCube.GetSpecialSquare(node.CubeSide) == SpecialSquare.End) {
+        pass = true;
+
+        break;
+      }
+
+      SubCubeSelection[] neighbors = GetNeighbors(node);
+
+      foreach (SubCubeSelection neighbor in neighbors) {
+        if (seen[neighbor.SubCube.I, neighbor.SubCube.J, neighbor.SubCube.K, (int) neighbor.CubeSide]) {
+          continue;
+        }
+
+        if (neighbor.SubCube.GetSquare(neighbor.CubeSide) != square) {
+          continue;
+        }
+
+        bfsQueue.Enqueue(neighbor);
+      }
+    }
+
+    Debug.Log($"Passed: {pass}");
+  }
+
+  private SubCubeSelection[] GetNeighbors(SubCubeSelection node) {
+    SubCubeSelection[] neighbors = new SubCubeSelection[4];
+
+    switch (node.CubeSide) {
+      case Side.Top:
+      case Side.Bottom: {
+          neighbors[0] = new() {
+            SubCube = node.SubCube.K == _level.Size - 1 ? node.SubCube : _subCubes[node.SubCube.I, node.SubCube.J, node.SubCube.K + 1],
+            CubeSide = node.SubCube.K == _level.Size - 1 ? Side.Far : node.CubeSide
+          };
+          neighbors[1] = new() {
+            SubCube = node.SubCube.J == 0 ? node.SubCube : _subCubes[node.SubCube.I, node.SubCube.J - 1, node.SubCube.K],
+            CubeSide = node.SubCube.J == 0 ? Side.Left : node.CubeSide
+          };
+          neighbors[2] = new() {
+            SubCube = node.SubCube.J == _level.Size - 1 ? node.SubCube : _subCubes[node.SubCube.I, node.SubCube.J + 1, node.SubCube.K],
+            CubeSide = node.SubCube.J == _level.Size - 1 ? Side.Right : node.CubeSide
+          };
+          neighbors[3] = new() {
+            SubCube = node.SubCube.K == 0 ? node.SubCube : _subCubes[node.SubCube.I, node.SubCube.J, node.SubCube.K - 1],
+            CubeSide = node.SubCube.K == 0 ? Side.Near : node.CubeSide
+          };
+
+          break;
+        }
+
+      case Side.Left:
+      case Side.Right: {
+          neighbors[0] = new() {
+            SubCube = node.SubCube.K == _level.Size - 1 ? node.SubCube : _subCubes[node.SubCube.I, node.SubCube.J, node.SubCube.K + 1],
+            CubeSide = node.SubCube.K == _level.Size - 1 ? Side.Far : node.CubeSide
+          };
+          neighbors[1] = new() {
+            SubCube = node.SubCube.I == 0 ? node.SubCube : _subCubes[node.SubCube.I - 1, node.SubCube.J, node.SubCube.K],
+            CubeSide = node.SubCube.I == 0 ? Side.Top : node.CubeSide
+          };
+          neighbors[2] = new() {
+            SubCube = node.SubCube.I == _level.Size - 1 ? node.SubCube : _subCubes[node.SubCube.I + 1, node.SubCube.J, node.SubCube.K],
+            CubeSide = node.SubCube.I == _level.Size - 1 ? Side.Bottom : node.CubeSide
+          };
+          neighbors[3] = new() {
+            SubCube = node.SubCube.K == 0 ? node.SubCube : _subCubes[node.SubCube.I, node.SubCube.J, node.SubCube.K - 1],
+            CubeSide = node.SubCube.K == 0 ? Side.Near : node.CubeSide
+          };
+
+          break;
+        }
+
+      case Side.Near:
+      case Side.Far: {
+          neighbors[0] = new() {
+            SubCube = node.SubCube.I == 0 ? node.SubCube : _subCubes[node.SubCube.I - 1, node.SubCube.J, node.SubCube.K],
+            CubeSide = node.SubCube.I == 0 ? Side.Top : node.CubeSide
+          };
+          neighbors[1] = new() {
+            SubCube = node.SubCube.J == 0 ? node.SubCube : _subCubes[node.SubCube.I, node.SubCube.J - 1, node.SubCube.K],
+            CubeSide = node.SubCube.J == 0 ? Side.Left : node.CubeSide
+          };
+          neighbors[2] = new() {
+            SubCube = node.SubCube.J == _level.Size - 1 ? node.SubCube : _subCubes[node.SubCube.I, node.SubCube.J + 1, node.SubCube.K],
+            CubeSide = node.SubCube.J == _level.Size - 1 ? Side.Right : node.CubeSide
+          };
+          neighbors[3] = new() {
+            SubCube = node.SubCube.I == _level.Size - 1 ? node.SubCube : _subCubes[node.SubCube.I + 1, node.SubCube.J, node.SubCube.K],
+            CubeSide = node.SubCube.I == _level.Size - 1 ? Side.Bottom : node.CubeSide
+          };
+
+          break;
+        }
+
+      default: {
+          throw new InvalidOperationException("Invalid side");
+        }
+    }
+
+    return neighbors;
+  }
+
   private SubCube GetSubCube(int a, int b) {
-    switch (_selectedLayer.Value.RotationAxis) {
+    switch (_selectedLayer.Value.CubeRotationAxis) {
       case Axis.X: {
           return _subCubes[a, _selectedSubCube.Value.SubCube.J, b];
         }
@@ -125,7 +252,7 @@ public class Cube: MonoBehaviour {
   }
 
   private void SetSubCube(int a, int b, SubCube subCube) {
-    switch (_selectedLayer.Value.RotationAxis) {
+    switch (_selectedLayer.Value.CubeRotationAxis) {
       case Axis.X: {
           subCube.I = a;
           subCube.K = b;
@@ -158,7 +285,7 @@ public class Cube: MonoBehaviour {
 
   private void UpdateSubCubes(int numTurns, bool flippedRotationAxis) {
     SubCube[] subCubesToUpdate = new SubCube[4];
-    bool shouldClockwiseUpdateSubCubes = Utils.GetShouldClockwiseUpdateSubCubes(_selectedLayer.Value.RotationAxis, flippedRotationAxis);
+    bool shouldClockwiseUpdateSubCubes = Utils.GetShouldClockwiseUpdateSubCubes(_selectedLayer.Value.CubeRotationAxis, flippedRotationAxis);
 
     for (int c = 0; c < numTurns; c++) {
       for (int a = 0; a < _level.Size / 2; a++) {
@@ -191,12 +318,12 @@ public class Cube: MonoBehaviour {
 
   private IEnumerator RoundLayer() {
     int numTurns = Mathf.RoundToInt(_totalLayerRotation / 90);
-    bool shouldFlipRotationAxis = Utils.GetShouldFlipRotationAxis(_selectedSubCube.Value.Side, _selectedLayer.Value.RotationAxis);
+    bool shouldFlipRotationAxis = Utils.GetShouldFlipRotationAxis(_selectedSubCube.Value.CubeSide, _selectedLayer.Value.CubeRotationAxis);
     Matrix4x4 cubeToWorldInvT = new();
 
     Assert.IsTrue(Utils.InverseTranspose3DAffine(transform.localToWorldMatrix, ref cubeToWorldInvT));
 
-    Vector3 cubeWorldRotationAxis = cubeToWorldInvT.GetColumn((int) _selectedLayer.Value.RotationAxis) * (shouldFlipRotationAxis ? -1 : 1);
+    Vector3 cubeWorldRotationAxis = cubeToWorldInvT.GetColumn((int) _selectedLayer.Value.CubeRotationAxis) * (shouldFlipRotationAxis ? -1 : 1);
 
     float timer = 0;
     float remainingRotation = numTurns * 90 - _totalLayerRotation;
@@ -240,7 +367,7 @@ public class Cube: MonoBehaviour {
     Axis axis1;
     Axis axis2;
 
-    switch (_selectedSubCube.Value.Side) {
+    switch (_selectedSubCube.Value.CubeSide) {
       case Side.Top:
       case Side.Bottom: {
           axis1 = Axis.X;
@@ -286,7 +413,7 @@ public class Cube: MonoBehaviour {
 
     _selectedLayer = new() {
       Transform = layer.transform,
-      RotationAxis = rotationAxis
+      CubeRotationAxis = rotationAxis
     };
 
     layer.transform.parent = transform;
@@ -305,8 +432,8 @@ public class Cube: MonoBehaviour {
   }
 
   private void RotateLayer(Vector2 delta) {
-    bool shouldFlipRotationAxis = Utils.GetShouldFlipRotationAxis(_selectedSubCube.Value.Side, _selectedLayer.Value.RotationAxis);
-    Axis deltaAxis = Utils.GetDeltaAxis(_selectedSubCube.Value.Side, _selectedLayer.Value.RotationAxis);
+    bool shouldFlipRotationAxis = Utils.GetShouldFlipRotationAxis(_selectedSubCube.Value.CubeSide, _selectedLayer.Value.CubeRotationAxis);
+    Axis deltaAxis = Utils.GetDeltaAxis(_selectedSubCube.Value.CubeSide, _selectedLayer.Value.CubeRotationAxis);
 
     Matrix4x4 cubeToWorldInvT = new();
     Matrix4x4 cubeToCameraInvT = new();
@@ -314,7 +441,7 @@ public class Cube: MonoBehaviour {
     Assert.IsTrue(Utils.InverseTranspose3DAffine(transform.localToWorldMatrix, ref cubeToWorldInvT));
     Assert.IsTrue(Utils.InverseTranspose3DAffine(Camera.main.transform.worldToLocalMatrix * transform.localToWorldMatrix, ref cubeToCameraInvT));
 
-    Vector3 cubeWorldRotationAxis = cubeToWorldInvT.GetColumn((int) _selectedLayer.Value.RotationAxis) * (shouldFlipRotationAxis ? -1 : 1);
+    Vector3 cubeWorldRotationAxis = cubeToWorldInvT.GetColumn((int) _selectedLayer.Value.CubeRotationAxis) * (shouldFlipRotationAxis ? -1 : 1);
     Vector3 cubeCameraDeltaAxis = cubeToCameraInvT.GetColumn((int) deltaAxis);
 
     // TODO: handle projective transformation?
@@ -359,7 +486,7 @@ public class Cube: MonoBehaviour {
       }
     }
 
-    _level.InitializeSubCubes(_subCubes);
+    _start = _level.InitializeSubCubes(_subCubes);
   }
 
   private void Awake() {
