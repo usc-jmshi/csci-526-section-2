@@ -344,7 +344,6 @@ public class Cube: MonoBehaviour {
           }
 
           SubCube subCube = Instantiate(_subCubePrefab);
-          subCube.transform.parent = transform;
           subCube.transform.localScale = new(SubCubeSize, SubCubeSize, SubCubeSize);
           subCube.transform.localPosition = new(
             (-bound + j) * (SubCubeSize + SubCubeGap),
@@ -354,6 +353,7 @@ public class Cube: MonoBehaviour {
           subCube.I = i;
           subCube.J = j;
           subCube.K = k;
+          subCube.transform.SetParent(transform, false);
           _subCubes[i, j, k] = subCube;
         }
       }
