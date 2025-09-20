@@ -39,32 +39,7 @@ public class Cube: MonoBehaviour {
       return;
     }
 
-    Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-
-    // TODO: avoid interior
-    if (Physics.Raycast(ray, out RaycastHit hitInfo) && hitInfo.collider.TryGetComponent(out SubCube subCube)) {
-      Matrix4x4 cubeToWorldInvT = new();
-
-      Assert.IsTrue(Utils.InverseTranspose3DAffine(transform.localToWorldMatrix, ref cubeToWorldInvT));
-
-      Vector3 cubeWorldXAxis = cubeToWorldInvT.GetColumn(0);
-      Vector3 cubeWorldYAxis = cubeToWorldInvT.GetColumn(1);
-      Vector3 cubeWorldZAxis = cubeToWorldInvT.GetColumn(2);
-
-      float xDot = Mathf.Abs(Vector3.Dot(cubeWorldXAxis, hitInfo.normal));
-      float yDot = Mathf.Abs(Vector3.Dot(cubeWorldYAxis, hitInfo.normal));
-      float zDot = Mathf.Abs(Vector3.Dot(cubeWorldZAxis, hitInfo.normal));
-
-      Side cubeSide;
-
-      if (xDot > yDot && xDot > zDot) {
-        cubeSide = Vector3.Dot(cubeWorldXAxis, hitInfo.normal) > 0 ? Side.Right : Side.Left;
-      } else if (yDot > zDot) {
-        cubeSide = Vector3.Dot(cubeWorldYAxis, hitInfo.normal) > 0 ? Side.Top : Side.Bottom;
-      } else {
-        cubeSide = Vector3.Dot(cubeWorldZAxis, hitInfo.normal) > 0 ? Side.Far : Side.Near;
-      }
-
+    if (GetHoveredSubCube(out SubCube subCube, out Side cubeSide)) {
       _selectedSubCube = new() {
         SubCube = subCube,
         CubeSide = cubeSide
@@ -151,6 +126,52 @@ public class Cube: MonoBehaviour {
     }
 
     Debug.Log($"Passed: {pass}");
+  }
+
+  public void SetHoveredSubCubeSquare(Square square) {
+    if (GetHoveredSubCube(out SubCube subCube, out Side cubeSide)) {
+      subCube.SetSquare(cubeSide, square);
+    }
+  }
+
+  public void SetHoveredSubCubeSpecialSquare(SpecialSquare specialSquare) {
+    if (GetHoveredSubCube(out SubCube subCube, out Side cubeSide)) {
+      subCube.SetSpecialSquare(cubeSide, specialSquare);
+    }
+  }
+
+  private bool GetHoveredSubCube(out SubCube subCube, out Side cubeSide) {
+    Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+
+    // TODO: avoid interior
+    if (Physics.Raycast(ray, out RaycastHit hitInfo) && hitInfo.collider.TryGetComponent(out subCube)) {
+      Matrix4x4 cubeToWorldInvT = new();
+
+      Assert.IsTrue(Utils.InverseTranspose3DAffine(transform.localToWorldMatrix, ref cubeToWorldInvT));
+
+      Vector3 cubeWorldXAxis = cubeToWorldInvT.GetColumn(0);
+      Vector3 cubeWorldYAxis = cubeToWorldInvT.GetColumn(1);
+      Vector3 cubeWorldZAxis = cubeToWorldInvT.GetColumn(2);
+
+      float xDot = Mathf.Abs(Vector3.Dot(cubeWorldXAxis, hitInfo.normal));
+      float yDot = Mathf.Abs(Vector3.Dot(cubeWorldYAxis, hitInfo.normal));
+      float zDot = Mathf.Abs(Vector3.Dot(cubeWorldZAxis, hitInfo.normal));
+
+      if (xDot > yDot && xDot > zDot) {
+        cubeSide = Vector3.Dot(cubeWorldXAxis, hitInfo.normal) > 0 ? Side.Right : Side.Left;
+      } else if (yDot > zDot) {
+        cubeSide = Vector3.Dot(cubeWorldYAxis, hitInfo.normal) > 0 ? Side.Top : Side.Bottom;
+      } else {
+        cubeSide = Vector3.Dot(cubeWorldZAxis, hitInfo.normal) > 0 ? Side.Far : Side.Near;
+      }
+
+      return true;
+    }
+
+    subCube = null;
+    cubeSide = Side.Top; // Doesn't matter
+
+    return false;
   }
 
   private SubCubeSelection[] GetNeighbors(SubCubeSelection node) {

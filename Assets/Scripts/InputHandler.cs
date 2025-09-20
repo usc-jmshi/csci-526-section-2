@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class InputHandler: MonoBehaviour {
-
   private void Update() {
     if (Mouse.current.leftButton.wasPressedThisFrame) {
       Cube.Instance.SelectSubCube();
@@ -29,8 +28,33 @@ public class InputHandler: MonoBehaviour {
       CameraManager.Instance.Zoom(Mouse.current.scroll.y.ReadValue());
     }
 
-    if (Keyboard.current.spaceKey.wasPressedThisFrame) {
-      Cube.Instance.Submit();
+    if (GameManager.Instance.LevelEditor) {
+      if (Keyboard.current.rKey.wasPressedThisFrame) {
+        Cube.Instance.SetHoveredSubCubeSquare(Square.Red);
+      } else if (Keyboard.current.gKey.wasPressedThisFrame) {
+        Cube.Instance.SetHoveredSubCubeSquare(Square.Green);
+      } else if (Keyboard.current.bKey.wasPressedThisFrame) {
+        Cube.Instance.SetHoveredSubCubeSquare(Square.Blue);
+      } else if (Keyboard.current.oKey.wasPressedThisFrame) {
+        Cube.Instance.SetHoveredSubCubeSquare(Square.Orange);
+      } else if (Keyboard.current.yKey.wasPressedThisFrame) {
+        Cube.Instance.SetHoveredSubCubeSquare(Square.Yellow);
+      } else if (Keyboard.current.wKey.wasPressedThisFrame) {
+        Cube.Instance.SetHoveredSubCubeSquare(Square.White);
+      } else if (Keyboard.current.sKey.wasPressedThisFrame) {
+        Cube.Instance.SetHoveredSubCubeSpecialSquare(SpecialSquare.Start);
+      } else if (Keyboard.current.eKey.wasPressedThisFrame) {
+        Cube.Instance.SetHoveredSubCubeSpecialSquare(SpecialSquare.End);
+      } else if (Keyboard.current.dKey.wasPressedThisFrame) {
+        Cube.Instance.SetHoveredSubCubeSquare(Square.None);
+        Cube.Instance.SetHoveredSubCubeSpecialSquare(SpecialSquare.None);
+      } else if (Keyboard.current.spaceKey.wasPressedThisFrame) {
+       // Cube.Instance.SaveLevel();
+      }
+    } else {
+      if (Keyboard.current.spaceKey.wasPressedThisFrame) {
+        Cube.Instance.Submit();
+      }
     }
   }
 }
