@@ -131,6 +131,7 @@ public class Cube: MonoBehaviour {
       }
     }
 
+    // TODO: update
     Debug.Log($"Passed: {pass}");
   }
 
