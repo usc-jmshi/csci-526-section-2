@@ -319,7 +319,7 @@ public class Cube: MonoBehaviour {
 
     // TODO: handle projective transformation?
     float rotation = Vector3.Dot(delta, cubeCameraDeltaAxis);
-    _totalLayerRotation = _totalLayerRotation + rotation;
+    _totalLayerRotation += rotation;
 
     if (_totalLayerRotation > 360) {
       _totalLayerRotation -= 360;

@@ -3,6 +3,7 @@ using UnityEngine;
 
 public static class Utils {
   public static readonly int BaseColorShaderPropID = Shader.PropertyToID("_BaseColor");
+  public static readonly int BaseMapShaderPropID = Shader.PropertyToID("_BaseMap");
 
   public static bool InverseTranspose3DAffine(Matrix4x4 input, ref Matrix4x4 result) {
     Matrix4x4 inverse = new();

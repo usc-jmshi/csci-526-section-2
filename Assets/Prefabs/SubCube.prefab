@@ -488,6 +488,10 @@ MonoBehaviour:
   - {fileID: 838233190506734121}
   - {fileID: 7891008014218632043}
   - {fileID: 2240085431588369097}
+  _textures:
+  - {fileID: 0}
+  - {fileID: 2800000, guid: 5f4ad7d9e3abaa44198523eb74eb17b1, type: 3}
+  - {fileID: 2800000, guid: 30433a3109a837e41ba2612bfa23beb7, type: 3}
 --- !u!65 &4831775614948728116
 BoxCollider:
   m_ObjectHideFlags: 0

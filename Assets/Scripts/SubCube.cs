@@ -7,8 +7,10 @@ public class SubCube: MonoBehaviour {
   public int K { get; set; }
 
   [SerializeField] private MeshRenderer[] _mrs;
+  [SerializeField] private Texture2D[] _textures;
 
   private readonly Square[] _squares = new Square[6];
+  private readonly SpecialSquare[] _specialSquares = new SpecialSquare[6];
 
   // Input is in Cube space, need to transform to local SubCube space
   public void SetSquare(Side cubeSide, Square square) {
@@ -25,10 +27,30 @@ public class SubCube: MonoBehaviour {
   }
 
   // Input is in Cube space, need to transform to local SubCube space
+  public void SetSpecialSquare(Side cubeSide, SpecialSquare specialSquare) {
+    Side subCubeSide = CubeSideToSubCubeSide(cubeSide);
+
+    MaterialPropertyBlock matPropBlock = new();
+    Texture2D texture = _textures[(int) specialSquare];
+
+    _mrs[(int) subCubeSide].GetPropertyBlock(matPropBlock);
+    matPropBlock.SetTexture(Utils.BaseMapShaderPropID, texture);
+    _mrs[(int) subCubeSide].SetPropertyBlock(matPropBlock);
+
+    _specialSquares[(int) subCubeSide] = specialSquare;
+  }
+
+  // Input is in Cube space, need to transform to local SubCube space
   public Square GetSquare(Side cubeSide) {
     Side subCubeSide = CubeSideToSubCubeSide(cubeSide);
 
     return _squares[(int) subCubeSide];
+  }
+
+  public SpecialSquare GetSpecialSquare(Side cubeSide) {
+    Side subCubeSide = CubeSideToSubCubeSide(cubeSide);
+
+    return _specialSquares[(int) subCubeSide];
   }
 
   private Side CubeSideToSubCubeSide(Side cubeSide) {

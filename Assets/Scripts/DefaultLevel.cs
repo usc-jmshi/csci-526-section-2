@@ -3,7 +3,7 @@
 public class DefaultLevel: Level {
   public override int Size => 3;
 
-  public override void InitializeSubCubes(SubCube[,,] subCubes) {
+  public override StartSubCube InitializeSubCubes(SubCube[,,] subCubes) {
     foreach (Side side in Enum.GetValues(typeof(Side))) {
       for (int a = 0; a < Size; a++) {
         for (int b = 0; b < Size; b++) {
@@ -51,5 +51,13 @@ public class DefaultLevel: Level {
         }
       }
     }
+
+    subCubes[0, 0, 0].SetSpecialSquare(Side.Near, SpecialSquare.Start);
+    subCubes[Size - 1, Size - 1, 0].SetSpecialSquare(Side.Near, SpecialSquare.End);
+
+    return new() {
+      SubCube = subCubes[0, 0, 0],
+      SubCubeSide = Side.Near
+    };
   }
 }
