@@ -421,23 +421,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &709847096 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4746767332115452878, guid: 12bc52a8d1413c347bef8b25539abbb7, type: 3}
-  m_PrefabInstance: {fileID: 1575579170214672703}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &709847099
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 709847096}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1610d557618e2dc4ca4f39799261037d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -516,7 +499,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c353f2760b8ddb54cb58f511565601a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _levelEditor: 1
+  _isLevelEditor: 1
+  _levelFileName: Tutorial
 --- !u!4 &931515289
 Transform:
   m_ObjectHideFlags: 0
@@ -631,10 +615,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 4746767332115452878, guid: 12bc52a8d1413c347bef8b25539abbb7, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 709847099}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 12bc52a8d1413c347bef8b25539abbb7, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

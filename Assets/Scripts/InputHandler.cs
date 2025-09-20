@@ -28,7 +28,7 @@ public class InputHandler: MonoBehaviour {
       CameraManager.Instance.Zoom(Mouse.current.scroll.y.ReadValue());
     }
 
-    if (GameManager.Instance.LevelEditor) {
+    if (GameManager.Instance.IsLevelEditor) {
       if (Keyboard.current.rKey.wasPressedThisFrame) {
         Cube.Instance.SetHoveredSubCubeSquare(Square.Red);
       } else if (Keyboard.current.gKey.wasPressedThisFrame) {
@@ -49,7 +49,23 @@ public class InputHandler: MonoBehaviour {
         Cube.Instance.SetHoveredSubCubeSquare(Square.None);
         Cube.Instance.SetHoveredSubCubeSpecialSquare(SpecialSquare.None);
       } else if (Keyboard.current.spaceKey.wasPressedThisFrame) {
-       // Cube.Instance.SaveLevel();
+        Cube.Instance.WriteLevelToFile();
+      } else if (Keyboard.current.digit2Key.wasPressedThisFrame) {
+        Cube.Instance.ResetEditor(2);
+      } else if (Keyboard.current.digit3Key.wasPressedThisFrame) {
+        Cube.Instance.ResetEditor(3);
+      } else if (Keyboard.current.digit4Key.wasPressedThisFrame) {
+        Cube.Instance.ResetEditor(4);
+      } else if (Keyboard.current.digit5Key.wasPressedThisFrame) {
+        Cube.Instance.ResetEditor(5);
+      } else if (Keyboard.current.digit6Key.wasPressedThisFrame) {
+        Cube.Instance.ResetEditor(6);
+      } else if (Keyboard.current.digit7Key.wasPressedThisFrame) {
+        Cube.Instance.ResetEditor(7);
+      } else if (Keyboard.current.digit8Key.wasPressedThisFrame) {
+        Cube.Instance.ResetEditor(8);
+      } else if (Keyboard.current.digit9Key.wasPressedThisFrame) {
+        Cube.Instance.ResetEditor(9);
       }
     } else {
       if (Keyboard.current.spaceKey.wasPressedThisFrame) {

@@ -1,19 +1,25 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.InputSystem;
 
 public class Cube: MonoBehaviour {
   private struct SubCubeSelection {
-    public SubCube SubCube { get; set; }
-    public Side CubeSide { get; set; }
+    public SubCube SubCube;
+    public Side CubeSide;
   }
 
   private struct LayerSelection {
-    public Transform Transform { get; set; }
-    public Axis CubeRotationAxis { get; set; }
+    public Transform Transform;
+    public Axis CubeRotationAxis;
+  }
+
+  private struct StartNode {
+    public SubCube SubCube;
+    public Side SubCubeSide;
   }
 
   public static Cube Instance { get; private set; }
@@ -27,15 +33,15 @@ public class Cube: MonoBehaviour {
 
   private SubCube[,,] _subCubes;
   private SubCubeSelection? _selectedSubCube;
-  private bool _rotatingCube;
+  private bool _isRotatingCube;
   private LayerSelection? _selectedLayer;
   private float _totalLayerRotation;
   private Coroutine _unselectCoroutine;
-  private Level _level;
-  private Level.Start _start;
+  private StartNode _start;
+  private int _size;
 
   public void SelectSubCube() {
-    if (_rotatingCube || _selectedSubCube != null || _selectedLayer != null || _unselectCoroutine != null) {
+    if (_isRotatingCube || _selectedSubCube != null || _selectedLayer != null || _unselectCoroutine != null) {
       return;
     }
 
@@ -60,11 +66,11 @@ public class Cube: MonoBehaviour {
       return;
     }
 
-    _rotatingCube = true;
+    _isRotatingCube = true;
   }
 
   public void EndCubeRotation() {
-    _rotatingCube = false;
+    _isRotatingCube = false;
   }
 
   public void Drag(Vector2 delta) {
@@ -76,7 +82,7 @@ public class Cube: MonoBehaviour {
       }
     }
 
-    if (_rotatingCube) {
+    if (_isRotatingCube) {
       transform.Rotate(delta.y, -delta.x, 0, Space.World);
     }
   }
@@ -94,7 +100,7 @@ public class Cube: MonoBehaviour {
 
     Queue<SubCubeSelection> bfsQueue = new();
     Square square = _start.SubCube.GetSquare(startCubeSide);
-    bool[,,,] seen = new bool[_level.Size, _level.Size, _level.Size, Enum.GetValues(typeof(Side)).Length];
+    bool[,,,] seen = new bool[_size, _size, _size, Enum.GetValues(typeof(Side)).Length];
     bool pass = false;
 
     bfsQueue.Enqueue(startNode);
@@ -140,6 +146,54 @@ public class Cube: MonoBehaviour {
     }
   }
 
+  public void WriteLevelToFile() {
+    // TODO: non-editor support
+    if (!Application.isEditor) {
+      return;
+    }
+
+    Level level = new(_size);
+
+    for (int i = 0; i < _size; i++) {
+      for (int j = 0; j < _size; j++) {
+        for (int k = 0; k < _size; k++) {
+          if (_subCubes[i, j, k] == null) {
+            continue;
+          }
+
+          foreach (Side cubeSide in Enum.GetValues(typeof(Side))) {
+            Square square = _subCubes[i, j, k].GetSquare(cubeSide);
+            SpecialSquare specialSquare = _subCubes[i, j, k].GetSpecialSquare(cubeSide);
+
+            level.SetSquare(i, j, k, cubeSide, square);
+            level.SetSpecialSquare(i, j, k, cubeSide, specialSquare);
+          }
+        }
+      }
+    }
+
+    string levelJSON = JsonUtility.ToJson(level, true);
+
+    File.WriteAllText($"{Application.dataPath}/Resources/Levels/{GameManager.Instance.LevelFileName}.json", levelJSON);
+
+    Debug.Log($"Wrote level to {GameManager.Instance.LevelFileName}.json");
+  }
+
+  public void ResetEditor(int size) {
+    if (_selectedSubCube != null || _selectedLayer != null || _unselectCoroutine != null) {
+      return;
+    }
+
+    foreach (Transform child in transform) {
+      Destroy(child.gameObject);
+    }
+
+    Level level = new(size);
+    level.SetSpecialSquare(0, 0, 0, Side.Near, SpecialSquare.Start);
+
+    Initialize(level);
+  }
+
   private bool GetHoveredSubCube(out SubCube subCube, out Side cubeSide) {
     Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
 
@@ -181,16 +235,16 @@ public class Cube: MonoBehaviour {
       case Side.Top:
       case Side.Bottom: {
           neighbors[0] = new() {
-            SubCube = node.SubCube.K == _level.Size - 1 ? node.SubCube : _subCubes[node.SubCube.I, node.SubCube.J, node.SubCube.K + 1],
-            CubeSide = node.SubCube.K == _level.Size - 1 ? Side.Far : node.CubeSide
+            SubCube = node.SubCube.K == _size - 1 ? node.SubCube : _subCubes[node.SubCube.I, node.SubCube.J, node.SubCube.K + 1],
+            CubeSide = node.SubCube.K == _size - 1 ? Side.Far : node.CubeSide
           };
           neighbors[1] = new() {
             SubCube = node.SubCube.J == 0 ? node.SubCube : _subCubes[node.SubCube.I, node.SubCube.J - 1, node.SubCube.K],
             CubeSide = node.SubCube.J == 0 ? Side.Left : node.CubeSide
           };
           neighbors[2] = new() {
-            SubCube = node.SubCube.J == _level.Size - 1 ? node.SubCube : _subCubes[node.SubCube.I, node.SubCube.J + 1, node.SubCube.K],
-            CubeSide = node.SubCube.J == _level.Size - 1 ? Side.Right : node.CubeSide
+            SubCube = node.SubCube.J == _size - 1 ? node.SubCube : _subCubes[node.SubCube.I, node.SubCube.J + 1, node.SubCube.K],
+            CubeSide = node.SubCube.J == _size - 1 ? Side.Right : node.CubeSide
           };
           neighbors[3] = new() {
             SubCube = node.SubCube.K == 0 ? node.SubCube : _subCubes[node.SubCube.I, node.SubCube.J, node.SubCube.K - 1],
@@ -203,16 +257,16 @@ public class Cube: MonoBehaviour {
       case Side.Left:
       case Side.Right: {
           neighbors[0] = new() {
-            SubCube = node.SubCube.K == _level.Size - 1 ? node.SubCube : _subCubes[node.SubCube.I, node.SubCube.J, node.SubCube.K + 1],
-            CubeSide = node.SubCube.K == _level.Size - 1 ? Side.Far : node.CubeSide
+            SubCube = node.SubCube.K == _size - 1 ? node.SubCube : _subCubes[node.SubCube.I, node.SubCube.J, node.SubCube.K + 1],
+            CubeSide = node.SubCube.K == _size - 1 ? Side.Far : node.CubeSide
           };
           neighbors[1] = new() {
             SubCube = node.SubCube.I == 0 ? node.SubCube : _subCubes[node.SubCube.I - 1, node.SubCube.J, node.SubCube.K],
             CubeSide = node.SubCube.I == 0 ? Side.Top : node.CubeSide
           };
           neighbors[2] = new() {
-            SubCube = node.SubCube.I == _level.Size - 1 ? node.SubCube : _subCubes[node.SubCube.I + 1, node.SubCube.J, node.SubCube.K],
-            CubeSide = node.SubCube.I == _level.Size - 1 ? Side.Bottom : node.CubeSide
+            SubCube = node.SubCube.I == _size - 1 ? node.SubCube : _subCubes[node.SubCube.I + 1, node.SubCube.J, node.SubCube.K],
+            CubeSide = node.SubCube.I == _size - 1 ? Side.Bottom : node.CubeSide
           };
           neighbors[3] = new() {
             SubCube = node.SubCube.K == 0 ? node.SubCube : _subCubes[node.SubCube.I, node.SubCube.J, node.SubCube.K - 1],
@@ -233,12 +287,12 @@ public class Cube: MonoBehaviour {
             CubeSide = node.SubCube.J == 0 ? Side.Left : node.CubeSide
           };
           neighbors[2] = new() {
-            SubCube = node.SubCube.J == _level.Size - 1 ? node.SubCube : _subCubes[node.SubCube.I, node.SubCube.J + 1, node.SubCube.K],
-            CubeSide = node.SubCube.J == _level.Size - 1 ? Side.Right : node.CubeSide
+            SubCube = node.SubCube.J == _size - 1 ? node.SubCube : _subCubes[node.SubCube.I, node.SubCube.J + 1, node.SubCube.K],
+            CubeSide = node.SubCube.J == _size - 1 ? Side.Right : node.CubeSide
           };
           neighbors[3] = new() {
-            SubCube = node.SubCube.I == _level.Size - 1 ? node.SubCube : _subCubes[node.SubCube.I + 1, node.SubCube.J, node.SubCube.K],
-            CubeSide = node.SubCube.I == _level.Size - 1 ? Side.Bottom : node.CubeSide
+            SubCube = node.SubCube.I == _size - 1 ? node.SubCube : _subCubes[node.SubCube.I + 1, node.SubCube.J, node.SubCube.K],
+            CubeSide = node.SubCube.I == _size - 1 ? Side.Bottom : node.CubeSide
           };
 
           break;
@@ -309,28 +363,28 @@ public class Cube: MonoBehaviour {
     bool shouldClockwiseUpdateSubCubes = Utils.GetShouldClockwiseUpdateSubCubes(_selectedLayer.Value.CubeRotationAxis, flippedRotationAxis);
 
     for (int c = 0; c < numTurns; c++) {
-      for (int a = 0; a < _level.Size / 2; a++) {
-        for (int b = a; b < _level.Size - 1 - a; b++) {
+      for (int a = 0; a < _size / 2; a++) {
+        for (int b = a; b < _size - 1 - a; b++) {
           subCubesToUpdate[0] = GetSubCube(a, b);
 
           if (subCubesToUpdate[0] == null) {
             return;
           }
 
-          subCubesToUpdate[1] = GetSubCube(b, _level.Size - 1 - a);
-          subCubesToUpdate[2] = GetSubCube(_level.Size - 1 - a, _level.Size - 1 - a - b);
-          subCubesToUpdate[3] = GetSubCube(_level.Size - 1 - a - b, a);
+          subCubesToUpdate[1] = GetSubCube(b, _size - 1 - a);
+          subCubesToUpdate[2] = GetSubCube(_size - 1 - a, _size - 1 - a - b);
+          subCubesToUpdate[3] = GetSubCube(_size - 1 - a - b, a);
 
           if (shouldClockwiseUpdateSubCubes) {
             SetSubCube(a, b, subCubesToUpdate[3]);
-            SetSubCube(b, _level.Size - 1 - a, subCubesToUpdate[0]);
-            SetSubCube(_level.Size - 1 - a, _level.Size - 1 - a - b, subCubesToUpdate[1]);
-            SetSubCube(_level.Size - 1 - a - b, a, subCubesToUpdate[2]);
+            SetSubCube(b, _size - 1 - a, subCubesToUpdate[0]);
+            SetSubCube(_size - 1 - a, _size - 1 - a - b, subCubesToUpdate[1]);
+            SetSubCube(_size - 1 - a - b, a, subCubesToUpdate[2]);
           } else {
             SetSubCube(a, b, subCubesToUpdate[1]);
-            SetSubCube(b, _level.Size - 1 - a, subCubesToUpdate[2]);
-            SetSubCube(_level.Size - 1 - a, _level.Size - 1 - a - b, subCubesToUpdate[3]);
-            SetSubCube(_level.Size - 1 - a - b, a, subCubesToUpdate[0]);
+            SetSubCube(b, _size - 1 - a, subCubesToUpdate[2]);
+            SetSubCube(_size - 1 - a, _size - 1 - a - b, subCubesToUpdate[3]);
+            SetSubCube(_size - 1 - a - b, a, subCubesToUpdate[0]);
           }
         }
       }
@@ -439,8 +493,8 @@ public class Cube: MonoBehaviour {
 
     layer.transform.parent = transform;
 
-    for (int a = 0; a < _level.Size; a++) {
-      for (int b = 0; b < _level.Size; b++) {
+    for (int a = 0; a < _size; a++) {
+      for (int b = 0; b < _size; b++) {
         SubCube subCube = GetSubCube(a, b);
 
         if (subCube == null) {
@@ -478,16 +532,18 @@ public class Cube: MonoBehaviour {
     _selectedLayer.Value.Transform.Rotate(cubeWorldRotationAxis, rotation, Space.World);
   }
 
-  private void Initialize() {
-    _subCubes = new SubCube[_level.Size, _level.Size, _level.Size];
-    float bound = (_level.Size - 1) / 2f;
+  private void Initialize(Level level) {
+    _size = level.Size;
 
-    for (int i = 0; i < _level.Size; i++) {
-      for (int j = 0; j < _level.Size; j++) {
-        bool border = i == 0 || i == _level.Size - 1 || j == 0 || j == _level.Size - 1;
+    _subCubes = new SubCube[_size, _size, _size];
+    float bound = (_size - 1) / 2f;
 
-        for (int k = 0; k < _level.Size; k++) {
-          if (!border && k != 0 && k != _level.Size - 1) {
+    for (int i = 0; i < _size; i++) {
+      for (int j = 0; j < _size; j++) {
+        bool border = i == 0 || i == _size - 1 || j == 0 || j == _size - 1;
+
+        for (int k = 0; k < _size; k++) {
+          if (!border && k != 0 && k != _size - 1) {
             continue;
           }
 
@@ -502,21 +558,39 @@ public class Cube: MonoBehaviour {
           subCube.J = j;
           subCube.K = k;
           subCube.transform.SetParent(transform, false);
+
+          foreach (Side side in Enum.GetValues(typeof(Side))) {
+            Square square = level.GetSquare(i, j, k, side);
+            SpecialSquare specialSquare = level.GetSpecialSquare(i, j, k, side);
+
+            subCube.SetSquare(side, square);
+            subCube.SetSpecialSquare(side, specialSquare);
+
+            if (specialSquare == SpecialSquare.Start) {
+              _start = new() {
+                SubCube = subCube,
+                SubCubeSide = side
+              };
+            }
+          }
+
           _subCubes[i, j, k] = subCube;
         }
       }
     }
-
-    _start = _level.InitializeSubCubes(_subCubes);
   }
 
   private void Awake() {
     Instance = this;
+  }
 
-    if (!TryGetComponent(out _level)) {
-      _level = gameObject.AddComponent<DefaultLevel>();
+  private void Start() {
+    if (GameManager.Instance.IsLevelEditor) {
+      ResetEditor(3);
+    } else {
+      TextAsset levelFile = Resources.Load<TextAsset>($"Levels/{GameManager.Instance.LevelFileName}");
+      Level level = JsonUtility.FromJson<Level>(levelFile.text);
+      Initialize(level);
     }
-
-    Initialize();
   }
 }
