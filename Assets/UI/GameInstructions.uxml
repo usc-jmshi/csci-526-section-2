@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UXML
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:ui="UnityEngine.UIElements"
+  xmlns:uie="UnityEditor.UIElements"
+  xsi:noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd"
+>
+  <Style src="/Assets/UI/Instructions.uss" />
+  <ui:VisualElement>
+    <ui:Label text="Left click + drag: rotate layer" />
+    <ui:Label text="Right click + drag: rotate cube" />
+    <ui:Label text="Scroll: zoom" />
+    <ui:Label text="Space: submit" />
+  </ui:VisualElement>
+</ui:UXML>

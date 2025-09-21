@@ -24,6 +24,8 @@ public class Cube: MonoBehaviour {
 
   public static Cube Instance { get; private set; }
 
+  public bool Initialized => _subCubes != null;
+
   private const float SubCubeSize = 1f;
   private const float SubCubeGap = 0.1f;
   private const float RoundLayerDuration = 0.1f;
@@ -149,7 +151,7 @@ public class Cube: MonoBehaviour {
 
   public void WriteLevelToFile() {
     // TODO: non-editor support
-    if (!Application.isEditor) {
+    if (!Application.isEditor || string.IsNullOrEmpty(GameManager.Instance.LevelFileName)) {
       return;
     }
 
@@ -192,6 +194,20 @@ public class Cube: MonoBehaviour {
     Level level = new(size);
     level.SetSpecialSquare(0, 0, 0, Side.Near, SpecialSquare.Start);
 
+    Initialize(level);
+  }
+
+  public void LoadLevel() {
+    if (_selectedSubCube != null || _selectedLayer != null || _unselectCoroutine != null || string.IsNullOrEmpty(GameManager.Instance.LevelFileName)) {
+      return;
+    }
+
+    foreach (Transform child in transform) {
+      Destroy(child.gameObject);
+    }
+
+    TextAsset levelFile = Resources.Load<TextAsset>($"Levels/{GameManager.Instance.LevelFileName}");
+    Level level = JsonUtility.FromJson<Level>(levelFile.text);
     Initialize(level);
   }
 
@@ -612,9 +628,7 @@ public class Cube: MonoBehaviour {
     if (GameManager.Instance.IsLevelEditor) {
       ResetEditor(3);
     } else {
-      TextAsset levelFile = Resources.Load<TextAsset>($"Levels/{GameManager.Instance.LevelFileName}");
-      Level level = JsonUtility.FromJson<Level>(levelFile.text);
-      Initialize(level);
+      LoadLevel();
     }
   }
 }

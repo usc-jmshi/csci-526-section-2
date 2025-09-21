@@ -3,6 +3,10 @@ using UnityEngine.InputSystem;
 
 public class InputHandler: MonoBehaviour {
   private void Update() {
+    if (!Cube.Instance.Initialized) {
+      return;
+    }
+
     if (Mouse.current.leftButton.wasPressedThisFrame) {
       Cube.Instance.SelectSubCube();
     } else if (Mouse.current.leftButton.wasReleasedThisFrame) {

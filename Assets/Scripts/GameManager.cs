@@ -11,6 +11,10 @@ public class GameManager: MonoBehaviour {
   [SerializeField]
   private string _levelFileName;
 
+  public void SetLevelFileName(string levelFileName) {
+    _levelFileName = levelFileName;
+  }
+
   private void Awake() {
     Instance = this;
   }

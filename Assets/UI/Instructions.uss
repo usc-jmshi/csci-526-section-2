@@ -1,0 +1,10 @@
+VisualElement {
+  flex-direction: column;
+  width: auto;
+  position: absolute;
+}
+
+Label {
+  -unity-font-definition: url("/Assets/Fonts/RubikMonoOne-Regular.ttf");
+  font-size: 12px;
+}

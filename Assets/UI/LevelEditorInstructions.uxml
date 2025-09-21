@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UXML
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:ui="UnityEngine.UIElements"
+  xmlns:uie="UnityEditor.UIElements"
+  xsi:noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd"
+>
+  <Style src="/Assets/UI/Instructions.uss" />
+  <ui:VisualElement>
+    <ui:Label text="Left click + drag: rotate layer" />
+    <ui:Label text="Right click + drag: rotate cube" />
+    <ui:Label text="Scroll: zoom" />
+    <ui:Label text="Space: write to file" />
+    <ui:Label text="2-9: reset with new size" />
+    <ui:Label text="Hover + r/g/b/y/o/w: set color" />
+    <ui:Label text="Hover + s/e: set start/end" />
+    <ui:Label text="Hover + d: unset color/start/end" />
+  </ui:VisualElement>
+</ui:UXML>
