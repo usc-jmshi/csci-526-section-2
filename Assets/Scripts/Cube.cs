@@ -212,7 +212,6 @@ public class Cube: MonoBehaviour {
   private bool GetHoveredSubCube(out SubCube subCube, out Side cubeSide) {
     Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
 
-    // TODO: avoid interior
     if (Physics.Raycast(ray, out RaycastHit hitInfo) && hitInfo.collider.TryGetComponent(out subCube)) {
       Matrix4x4 cubeToWorldInvT = new();
 
@@ -234,7 +233,7 @@ public class Cube: MonoBehaviour {
         cubeSide = Vector3.Dot(cubeWorldZAxis, hitInfo.normal) > 0 ? Side.Far : Side.Near;
       }
 
-      return true;
+      return Utils.CheckCubeSideForSubCube(subCube, cubeSide, _size);
     }
 
     subCube = null;

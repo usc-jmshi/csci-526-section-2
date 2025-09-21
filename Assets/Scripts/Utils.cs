@@ -159,4 +159,36 @@ public static class Utils {
         }
     }
   }
+
+  public static bool CheckCubeSideForSubCube(SubCube subCube, Side cubeSide, int cubeSize) {
+    switch (cubeSide) {
+      case Side.Top: {
+          return subCube.I == 0;
+        }
+
+      case Side.Bottom: {
+          return subCube.I == cubeSize - 1;
+        }
+
+      case Side.Left: {
+          return subCube.J == 0;
+        }
+
+      case Side.Right: {
+          return subCube.J == cubeSize - 1;
+        }
+
+      case Side.Near: {
+          return subCube.K == 0;
+        }
+
+      case Side.Far: {
+          return subCube.K == cubeSize - 1;
+        }
+
+      default: {
+          throw new InvalidOperationException("Invalid side");
+        }
+    }
+  }
 }
