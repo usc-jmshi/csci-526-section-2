@@ -363,29 +363,52 @@ public class Cube: MonoBehaviour {
     SubCube[] subCubesToUpdate = new SubCube[4];
     bool shouldClockwiseUpdateSubCubes = Utils.GetShouldClockwiseUpdateSubCubes(_selectedLayer.Value.CubeRotationAxis, flippedRotationAxis);
 
+    int layerIndex;
+
+    switch (_selectedLayer.Value.CubeRotationAxis) {
+      case Axis.X: {
+          layerIndex = _selectedSubCube.Value.SubCube.J;
+
+          break;
+        }
+
+      case Axis.Y: {
+          layerIndex = _selectedSubCube.Value.SubCube.I;
+
+          break;
+        }
+
+      case Axis.Z: {
+          layerIndex = _selectedSubCube.Value.SubCube.K;
+
+          break;
+        }
+
+      default: {
+          throw new InvalidOperationException("Invalid axis");
+        }
+    }
+
+    bool border = layerIndex == 0 || layerIndex == _size - 1;
+
     for (int c = 0; c < numTurns; c++) {
-      for (int a = 0; a < _size / 2; a++) {
+      for (int a = 0; a < (border ? _size / 2 : 1); a++) {
         for (int b = a; b < _size - 1 - a; b++) {
           subCubesToUpdate[0] = GetSubCube(a, b);
-
-          if (subCubesToUpdate[0] == null) {
-            return;
-          }
-
           subCubesToUpdate[1] = GetSubCube(b, _size - 1 - a);
-          subCubesToUpdate[2] = GetSubCube(_size - 1 - a, _size - 1 - a - b);
-          subCubesToUpdate[3] = GetSubCube(_size - 1 - a - b, a);
+          subCubesToUpdate[2] = GetSubCube(_size - 1 - a, _size - 1 - b);
+          subCubesToUpdate[3] = GetSubCube(_size - 1 - b, a);
 
           if (shouldClockwiseUpdateSubCubes) {
             SetSubCube(a, b, subCubesToUpdate[3]);
             SetSubCube(b, _size - 1 - a, subCubesToUpdate[0]);
-            SetSubCube(_size - 1 - a, _size - 1 - a - b, subCubesToUpdate[1]);
-            SetSubCube(_size - 1 - a - b, a, subCubesToUpdate[2]);
+            SetSubCube(_size - 1 - a, _size - 1 - b, subCubesToUpdate[1]);
+            SetSubCube(_size - 1 - b, a, subCubesToUpdate[2]);
           } else {
             SetSubCube(a, b, subCubesToUpdate[1]);
             SetSubCube(b, _size - 1 - a, subCubesToUpdate[2]);
-            SetSubCube(_size - 1 - a, _size - 1 - a - b, subCubesToUpdate[3]);
-            SetSubCube(_size - 1 - a - b, a, subCubesToUpdate[0]);
+            SetSubCube(_size - 1 - a, _size - 1 - b, subCubesToUpdate[3]);
+            SetSubCube(_size - 1 - b, a, subCubesToUpdate[0]);
           }
         }
       }
