@@ -94,17 +94,16 @@ public class Cube: MonoBehaviour {
     }
 
     Side startCubeSide = _start.SubCube.SubCubeSideToCubeSide(_start.SubCubeSide);
-    SubCubeSelection startNode = new() {
-      SubCube = _start.SubCube,
-      CubeSide = startCubeSide
-    };
-
-    Queue<SubCubeSelection> bfsQueue = new();
     Square square = _start.SubCube.GetSquare(startCubeSide);
     bool[,,,] seen = new bool[_size, _size, _size, Enum.GetValues(typeof(Side)).Length];
     bool pass = false;
 
-    bfsQueue.Enqueue(startNode);
+    Queue<SubCubeSelection> bfsQueue = new();
+
+    bfsQueue.Enqueue(new() {
+      SubCube = _start.SubCube,
+      CubeSide = startCubeSide
+    });
 
     while (bfsQueue.Count > 0) {
       SubCubeSelection node = bfsQueue.Dequeue();
@@ -206,6 +205,7 @@ public class Cube: MonoBehaviour {
 
     TextAsset levelFile = Resources.Load<TextAsset>($"Levels/{GameManager.Instance.LevelFileName}");
     Level level = JsonUtility.FromJson<Level>(levelFile.text);
+
     Initialize(level);
   }
 
@@ -432,6 +432,7 @@ public class Cube: MonoBehaviour {
   private IEnumerator RoundLayer() {
     int numTurns = Mathf.RoundToInt(_totalLayerRotation / 90);
     bool shouldFlipRotationAxis = Utils.GetShouldFlipRotationAxis(_selectedSubCube.Value.CubeSide, _selectedLayer.Value.CubeRotationAxis);
+
     Matrix4x4 cubeToWorldInvT = new();
 
     Utils.InverseTranspose3DAffine(transform.localToWorldMatrix, ref cubeToWorldInvT);
@@ -473,6 +474,7 @@ public class Cube: MonoBehaviour {
     }
 
     _selectedSubCube = null;
+
     _unselectCoroutine = null;
   }
 
@@ -572,8 +574,8 @@ public class Cube: MonoBehaviour {
 
   private void Initialize(Level level) {
     _size = level.Size;
-
     _subCubes = new SubCube[_size, _size, _size];
+
     float bound = (_size - 1) / 2f;
 
     for (int i = 0; i < _size; i++) {
