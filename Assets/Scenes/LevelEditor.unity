@@ -500,7 +500,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _isLevelEditor: 1
-  _levelFileName: Tutorial
+  _levelFileName: 
 --- !u!4 &931515289
 Transform:
   m_ObjectHideFlags: 0
