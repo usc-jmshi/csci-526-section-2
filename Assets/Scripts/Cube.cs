@@ -133,8 +133,7 @@ public class Cube: MonoBehaviour {
       }
     }
 
-    // TODO: update
-    Debug.Log($"Passed: {pass}");
+    NotificationUI.Instance.Notify(pass ? "Pass" : "Fail", pass ? Color.green : Color.red);
   }
 
   public void SetHoveredSubCubeSquare(Square square) {
@@ -179,7 +178,7 @@ public class Cube: MonoBehaviour {
 
     File.WriteAllText($"{Application.dataPath}/Resources/Levels/{GameManager.Instance.LevelFileName}.json", levelJSON);
 
-    Debug.Log($"Wrote level to {GameManager.Instance.LevelFileName}.json");
+    NotificationUI.Instance.Notify("Write", Color.green);
   }
 
   public void ResetEditor(int size) {
