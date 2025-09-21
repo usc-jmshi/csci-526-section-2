@@ -7,7 +7,7 @@ public class SubCube: MonoBehaviour {
   public int K { get; set; }
 
   [SerializeField] private MeshRenderer[] _mrs;
-  [SerializeField] private Texture2D[] _textures;
+  [SerializeField] private Texture2D[] _textures; // TODO: maybe use world space UI
 
   private readonly Square[] _squares = new Square[6];
   private readonly SpecialSquare[] _specialSquares = new SpecialSquare[6];
