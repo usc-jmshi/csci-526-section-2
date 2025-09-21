@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.Assertions;
 
 public class SubCube: MonoBehaviour {
   public int I { get; set; }
@@ -53,7 +52,7 @@ public class SubCube: MonoBehaviour {
   public Side SubCubeSideToCubeSide(Side subCubeSide) {
     Matrix4x4 cubeToSubCubeInvT = new();
 
-    Assert.IsTrue(Utils.InverseTranspose3DAffine(transform.worldToLocalMatrix * Cube.Instance.transform.localToWorldMatrix, ref cubeToSubCubeInvT));
+    Utils.InverseTranspose3DAffine(transform.worldToLocalMatrix * Cube.Instance.transform.localToWorldMatrix, ref cubeToSubCubeInvT);
 
     Vector3 cubeSubCubeXAxis = cubeToSubCubeInvT.GetColumn(0);
     Vector3 cubeSubCubeYAxis = cubeToSubCubeInvT.GetColumn(1);
@@ -81,7 +80,7 @@ public class SubCube: MonoBehaviour {
   private Side CubeSideToSubCubeSide(Side cubeSide) {
     Matrix4x4 subCubeToCubeInvT = new();
 
-    Assert.IsTrue(Utils.InverseTranspose3DAffine(Cube.Instance.transform.worldToLocalMatrix * transform.localToWorldMatrix, ref subCubeToCubeInvT));
+    Utils.InverseTranspose3DAffine(Cube.Instance.transform.worldToLocalMatrix * transform.localToWorldMatrix, ref subCubeToCubeInvT);
 
     Vector3 subCubeCubeXAxis = subCubeToCubeInvT.GetColumn(0);
     Vector3 subCubeCubeYAxis = subCubeToCubeInvT.GetColumn(1);

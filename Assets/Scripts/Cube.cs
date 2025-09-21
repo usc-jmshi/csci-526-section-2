@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
-using UnityEngine.Assertions;
 using UnityEngine.InputSystem;
 
 public class Cube: MonoBehaviour {
@@ -217,7 +216,7 @@ public class Cube: MonoBehaviour {
     if (Physics.Raycast(ray, out RaycastHit hitInfo) && hitInfo.collider.TryGetComponent(out subCube)) {
       Matrix4x4 cubeToWorldInvT = new();
 
-      Assert.IsTrue(Utils.InverseTranspose3DAffine(transform.localToWorldMatrix, ref cubeToWorldInvT));
+      Utils.InverseTranspose3DAffine(transform.localToWorldMatrix, ref cubeToWorldInvT);
 
       Vector3 cubeWorldXAxis = cubeToWorldInvT.GetColumn(0);
       Vector3 cubeWorldYAxis = cubeToWorldInvT.GetColumn(1);
@@ -435,7 +434,7 @@ public class Cube: MonoBehaviour {
     bool shouldFlipRotationAxis = Utils.GetShouldFlipRotationAxis(_selectedSubCube.Value.CubeSide, _selectedLayer.Value.CubeRotationAxis);
     Matrix4x4 cubeToWorldInvT = new();
 
-    Assert.IsTrue(Utils.InverseTranspose3DAffine(transform.localToWorldMatrix, ref cubeToWorldInvT));
+    Utils.InverseTranspose3DAffine(transform.localToWorldMatrix, ref cubeToWorldInvT);
 
     Vector3 cubeWorldRotationAxis = cubeToWorldInvT.GetColumn((int) _selectedLayer.Value.CubeRotationAxis) * (shouldFlipRotationAxis ? -1 : 1);
 
@@ -513,7 +512,7 @@ public class Cube: MonoBehaviour {
 
     Matrix4x4 cubeToCameraInvT = new();
 
-    Assert.IsTrue(Utils.InverseTranspose3DAffine(Camera.main.transform.worldToLocalMatrix * transform.localToWorldMatrix, ref cubeToCameraInvT));
+    Utils.InverseTranspose3DAffine(Camera.main.transform.worldToLocalMatrix * transform.localToWorldMatrix, ref cubeToCameraInvT);
 
     Vector3 cubeCameraAxis1 = cubeToCameraInvT.GetColumn((int) axis1);
     Vector3 cubeCameraAxis2 = cubeToCameraInvT.GetColumn((int) axis2);
@@ -552,8 +551,8 @@ public class Cube: MonoBehaviour {
     Matrix4x4 cubeToWorldInvT = new();
     Matrix4x4 cubeToCameraInvT = new();
 
-    Assert.IsTrue(Utils.InverseTranspose3DAffine(transform.localToWorldMatrix, ref cubeToWorldInvT));
-    Assert.IsTrue(Utils.InverseTranspose3DAffine(Camera.main.transform.worldToLocalMatrix * transform.localToWorldMatrix, ref cubeToCameraInvT));
+    Utils.InverseTranspose3DAffine(transform.localToWorldMatrix, ref cubeToWorldInvT);
+    Utils.InverseTranspose3DAffine(Camera.main.transform.worldToLocalMatrix * transform.localToWorldMatrix, ref cubeToCameraInvT);
 
     Vector3 cubeWorldRotationAxis = cubeToWorldInvT.GetColumn((int) _selectedLayer.Value.CubeRotationAxis) * (shouldFlipRotationAxis ? -1 : 1);
     Vector3 cubeCameraDeltaAxis = cubeToCameraInvT.GetColumn((int) deltaAxis);
