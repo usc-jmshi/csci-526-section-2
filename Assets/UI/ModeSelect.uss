@@ -1,0 +1,11 @@
+VisualElement {
+  width: auto;
+  position: absolute;
+  right: 0px;
+  bottom: 0px;
+}
+
+Button {
+  -unity-font-definition: url("/Assets/Fonts/RubikMonoOne-Regular.ttf");
+  font-size: 12px;
+}
