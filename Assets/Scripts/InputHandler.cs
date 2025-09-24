@@ -23,7 +23,6 @@ public class InputHandler: MonoBehaviour {
       Cube.Instance.EndCubeRotation();
     }
 
-    // TODO: minimum threshold?
     Vector2 mouseDelta = Mouse.current.delta.ReadValue();
 
     if (mouseDelta.sqrMagnitude > 0) {

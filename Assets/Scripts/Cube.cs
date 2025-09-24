@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -28,9 +27,12 @@ public class Cube: MonoBehaviour {
   private const float SubCubeSize = 1f;
   private const float SubCubeGap = 0.1f;
   private const float RoundLayerDuration = 0.1f;
+  private const float SelectLayerDragThreshold = 3f;
 
   [SerializeField]
   private SubCube _subCubePrefab;
+
+  private readonly List<StartNode> _starts = new();
 
   private SubCube[,,] _subCubes;
   private SubCubeSelection? _selectedSubCube;
@@ -38,7 +40,6 @@ public class Cube: MonoBehaviour {
   private LayerSelection? _selectedLayer;
   private float _totalLayerRotation;
   private Coroutine _unselectCoroutine;
-  private StartNode _start;
   private int _size;
 
   public void SelectSubCube() {
@@ -77,7 +78,9 @@ public class Cube: MonoBehaviour {
   public void Drag(Vector2 delta) {
     if (_selectedSubCube != null && _unselectCoroutine == null) {
       if (_selectedLayer == null) {
-        SelectLayer(delta);
+        if (delta.sqrMagnitude > SelectLayerDragThreshold) {
+          SelectLayer(delta);
+        }
       } else {
         RotateLayer(delta);
       }
@@ -93,45 +96,55 @@ public class Cube: MonoBehaviour {
       return;
     }
 
-    Side startCubeSide = _start.SubCube.SubCubeSideToCubeSide(_start.SubCubeSide);
-    Square square = _start.SubCube.GetSquare(startCubeSide);
-    bool[,,,] seen = new bool[_size, _size, _size, Enum.GetValues(typeof(Side)).Length];
-    bool pass = false;
+    bool overallPass = true;
 
-    Queue<SubCubeSelection> bfsQueue = new();
+    foreach (StartNode startNode in _starts) {
+      Side startCubeSide = startNode.SubCube.SubCubeSideToCubeSide(startNode.SubCubeSide);
+      Square square = startNode.SubCube.GetSquare(startCubeSide);
+      bool[,,,] seen = new bool[_size, _size, _size, Enum.GetValues(typeof(Side)).Length];
+      bool startNodePass = false;
 
-    bfsQueue.Enqueue(new() {
-      SubCube = _start.SubCube,
-      CubeSide = startCubeSide
-    });
+      Queue<SubCubeSelection> bfsQueue = new();
 
-    while (bfsQueue.Count > 0) {
-      SubCubeSelection node = bfsQueue.Dequeue();
+      bfsQueue.Enqueue(new() {
+        SubCube = startNode.SubCube,
+        CubeSide = startCubeSide
+      });
 
-      seen[node.SubCube.I, node.SubCube.J, node.SubCube.K, (int) node.CubeSide] = true;
+      while (bfsQueue.Count > 0) {
+        SubCubeSelection node = bfsQueue.Dequeue();
 
-      if (node.SubCube.GetSpecialSquare(node.CubeSide) == SpecialSquare.End) {
-        pass = true;
+        seen[node.SubCube.I, node.SubCube.J, node.SubCube.K, (int) node.CubeSide] = true;
+
+        if (node.SubCube.GetSpecialSquare(node.CubeSide) == SpecialSquare.End) {
+          startNodePass = true;
+
+          break;
+        }
+
+        SubCubeSelection[] neighbors = GetNeighbors(node);
+
+        foreach (SubCubeSelection neighbor in neighbors) {
+          if (seen[neighbor.SubCube.I, neighbor.SubCube.J, neighbor.SubCube.K, (int) neighbor.CubeSide]) {
+            continue;
+          }
+
+          if (neighbor.SubCube.GetSquare(neighbor.CubeSide) != square) {
+            continue;
+          }
+
+          bfsQueue.Enqueue(neighbor);
+        }
+      }
+
+      if (!startNodePass) {
+        overallPass = false;
 
         break;
       }
-
-      SubCubeSelection[] neighbors = GetNeighbors(node);
-
-      foreach (SubCubeSelection neighbor in neighbors) {
-        if (seen[neighbor.SubCube.I, neighbor.SubCube.J, neighbor.SubCube.K, (int) neighbor.CubeSide]) {
-          continue;
-        }
-
-        if (neighbor.SubCube.GetSquare(neighbor.CubeSide) != square) {
-          continue;
-        }
-
-        bfsQueue.Enqueue(neighbor);
-      }
     }
 
-    NotificationUI.Instance.Notify(pass ? "Pass" : "Fail", pass ? Color.green : Color.red);
+    NotificationUI.Instance.Notify(overallPass ? "Pass" : "Fail", overallPass ? Color.green : Color.red);
   }
 
   public void SetHoveredSubCubeSquare(Square square) {
@@ -188,6 +201,7 @@ public class Cube: MonoBehaviour {
 
     _size = level.Size;
     _subCubes = new SubCube[_size, _size, _size];
+    _starts.Clear();
 
     float bound = (_size - 1) / 2f;
 
@@ -220,10 +234,10 @@ public class Cube: MonoBehaviour {
             subCube.SetSpecialSquare(side, specialSquare);
 
             if (specialSquare == SpecialSquare.Start) {
-              _start = new() {
+              _starts.Add(new() {
                 SubCube = subCube,
                 SubCubeSide = side
-              };
+              });
             }
           }
 
