@@ -1,8 +1,9 @@
-VisualElement {
+ScrollView {
   flex-direction: column;
   width: auto;
   position: absolute;
   right: 0px;
+  height: 50%;
 }
 
 Button {

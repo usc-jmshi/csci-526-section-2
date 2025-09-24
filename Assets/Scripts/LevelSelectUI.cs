@@ -3,31 +3,65 @@ using UnityEngine.UIElements;
 
 [RequireComponent(typeof(UIDocument))]
 public class LevelSelectUI: MonoBehaviour {
-  private Button _tutorialBtn;
-  private Button _demoBtn;
+  private struct ButtonData {
+    public bool Custom;
+    public int Index;
+  }
+
+  private ScrollView _levelSelectScrollView;
 
   private void OnEnable() {
     UIDocument uiDoc = GetComponent<UIDocument>();
 
-    _tutorialBtn = uiDoc.rootVisualElement.Q<Button>("tutorial");
-    _demoBtn = uiDoc.rootVisualElement.Q<Button>("demo");
-
-    _tutorialBtn.RegisterCallback<ClickEvent>(LoadTutorial);
-    _demoBtn.RegisterCallback<ClickEvent>(LoadDemo);
+    _levelSelectScrollView = uiDoc.rootVisualElement.Q<ScrollView>("level-select");
   }
 
   private void OnDisable() {
-    _tutorialBtn.UnregisterCallback<ClickEvent>(LoadTutorial);
-    _demoBtn.UnregisterCallback<ClickEvent>(LoadDemo);
+    foreach (VisualElement child in _levelSelectScrollView.Children()) {
+      child.UnregisterCallback<ClickEvent>(OnClickEvent);
+    }
   }
 
-  private void LoadTutorial(ClickEvent evt) {
-    GameManager.Instance.SetLevelFileName("Tutorial");
-    Cube.Instance.LoadLevel();
+  private void Start() {
+    string[] builtInLevelNames = GameManager.Instance.GetBuiltInLevelNames();
+
+    for (int i = 0; i < builtInLevelNames.Length; i++) {
+      Button btn = new() {
+        text = builtInLevelNames[i],
+        userData = new ButtonData {
+          Custom = false,
+          Index = i
+        }
+      };
+
+      btn.RegisterCallback<ClickEvent>(OnClickEvent);
+
+      _levelSelectScrollView.Add(btn);
+    }
+
+    string[] customLevelNames = GameManager.Instance.GetCustomLevelNames();
+
+    for (int i = 0; i < customLevelNames.Length; i++) {
+      Button btn = new() {
+        text = customLevelNames[i],
+        userData = new ButtonData {
+          Custom = true,
+          Index = i
+        }
+      };
+
+      btn.RegisterCallback<ClickEvent>(OnClickEvent);
+
+      _levelSelectScrollView.Add(btn);
+    }
   }
 
-  private void LoadDemo(ClickEvent evt) {
-    GameManager.Instance.SetLevelFileName("Demo");
-    Cube.Instance.LoadLevel();
+  private void OnClickEvent(ClickEvent evt) {
+    Button btn = (Button) evt.target;
+    ButtonData data = (ButtonData) btn.userData;
+
+    Level level = data.Custom ? GameManager.Instance.GetCustomLevel(data.Index) : GameManager.Instance.GetBuiltInLevel(data.Index);
+
+    Cube.Instance.Load(level);
   }
 }

@@ -23,7 +23,7 @@ public class Cube: MonoBehaviour {
 
   public static Cube Instance { get; private set; }
 
-  public bool Initialized => _subCubes != null;
+  public bool IsLoaded => _subCubes != null;
 
   private const float SubCubeSize = 1f;
   private const float SubCubeGap = 0.1f;
@@ -179,7 +179,14 @@ public class Cube: MonoBehaviour {
     NotificationUI.Instance.Notify("Write", Color.green);
   }
 
-  public void ResetEditor(int size) {
+  public void Clear(int size) {
+    Level level = new(size);
+    level.SetSpecialSquare(0, 0, 0, Side.Near, SpecialSquare.Start);
+
+    Load(level);
+  }
+
+  public void Load(Level level) {
     if (_selectedSubCube != null || _selectedLayer != null || _unselectCoroutine != null) {
       return;
     }
@@ -188,25 +195,51 @@ public class Cube: MonoBehaviour {
       Destroy(child.gameObject);
     }
 
-    Level level = new(size);
-    level.SetSpecialSquare(0, 0, 0, Side.Near, SpecialSquare.Start);
+    _size = level.Size;
+    _subCubes = new SubCube[_size, _size, _size];
 
-    Initialize(level);
-  }
+    float bound = (_size - 1) / 2f;
 
-  public void LoadLevel() {
-    if (_selectedSubCube != null || _selectedLayer != null || _unselectCoroutine != null || string.IsNullOrEmpty(GameManager.Instance.LevelFileName)) {
-      return;
+    for (int i = 0; i < _size; i++) {
+      for (int j = 0; j < _size; j++) {
+        bool border = i == 0 || i == _size - 1 || j == 0 || j == _size - 1;
+
+        for (int k = 0; k < _size; k++) {
+          if (!border && k != 0 && k != _size - 1) {
+            continue;
+          }
+
+          SubCube subCube = Instantiate(_subCubePrefab);
+          subCube.transform.localScale = new(SubCubeSize, SubCubeSize, SubCubeSize);
+          subCube.transform.localPosition = new(
+            (-bound + j) * (SubCubeSize + SubCubeGap),
+            (bound - i) * (SubCubeSize + SubCubeGap),
+            (-bound + k) * (SubCubeSize + SubCubeGap)
+          );
+          subCube.I = i;
+          subCube.J = j;
+          subCube.K = k;
+          subCube.transform.SetParent(transform, false);
+
+          foreach (Side side in Enum.GetValues(typeof(Side))) {
+            Square square = level.GetSquare(i, j, k, side);
+            SpecialSquare specialSquare = level.GetSpecialSquare(i, j, k, side);
+
+            subCube.SetSquare(side, square);
+            subCube.SetSpecialSquare(side, specialSquare);
+
+            if (specialSquare == SpecialSquare.Start) {
+              _start = new() {
+                SubCube = subCube,
+                SubCubeSide = side
+              };
+            }
+          }
+
+          _subCubes[i, j, k] = subCube;
+        }
+      }
     }
-
-    foreach (Transform child in transform) {
-      Destroy(child.gameObject);
-    }
-
-    TextAsset levelFile = Resources.Load<TextAsset>($"Levels/{GameManager.Instance.LevelFileName}");
-    Level level = JsonUtility.FromJson<Level>(levelFile.text);
-
-    Initialize(level);
   }
 
   private bool GetHoveredSubCube(out SubCube subCube, out Side cubeSide) {
@@ -571,63 +604,15 @@ public class Cube: MonoBehaviour {
     _selectedLayer.Value.Transform.Rotate(cubeWorldRotationAxis, rotation, Space.World);
   }
 
-  private void Initialize(Level level) {
-    _size = level.Size;
-    _subCubes = new SubCube[_size, _size, _size];
-
-    float bound = (_size - 1) / 2f;
-
-    for (int i = 0; i < _size; i++) {
-      for (int j = 0; j < _size; j++) {
-        bool border = i == 0 || i == _size - 1 || j == 0 || j == _size - 1;
-
-        for (int k = 0; k < _size; k++) {
-          if (!border && k != 0 && k != _size - 1) {
-            continue;
-          }
-
-          SubCube subCube = Instantiate(_subCubePrefab);
-          subCube.transform.localScale = new(SubCubeSize, SubCubeSize, SubCubeSize);
-          subCube.transform.localPosition = new(
-            (-bound + j) * (SubCubeSize + SubCubeGap),
-            (bound - i) * (SubCubeSize + SubCubeGap),
-            (-bound + k) * (SubCubeSize + SubCubeGap)
-          );
-          subCube.I = i;
-          subCube.J = j;
-          subCube.K = k;
-          subCube.transform.SetParent(transform, false);
-
-          foreach (Side side in Enum.GetValues(typeof(Side))) {
-            Square square = level.GetSquare(i, j, k, side);
-            SpecialSquare specialSquare = level.GetSpecialSquare(i, j, k, side);
-
-            subCube.SetSquare(side, square);
-            subCube.SetSpecialSquare(side, specialSquare);
-
-            if (specialSquare == SpecialSquare.Start) {
-              _start = new() {
-                SubCube = subCube,
-                SubCubeSide = side
-              };
-            }
-          }
-
-          _subCubes[i, j, k] = subCube;
-        }
-      }
-    }
-  }
-
   private void Awake() {
     Instance = this;
   }
 
   private void Start() {
     if (GameManager.Instance.IsLevelEditor) {
-      ResetEditor(3);
+      Clear(3);
     } else {
-      LoadLevel();
+      Load(GameManager.Instance.GetBuiltInLevel(0));
     }
   }
 }

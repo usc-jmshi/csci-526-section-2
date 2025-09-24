@@ -6,8 +6,5 @@
   xsi:noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd"
 >
   <Style src="/Assets/UI/LevelSelect.uss" />
-  <ui:VisualElement>
-    <ui:Button name="tutorial" text="Tutorial" />
-    <ui:Button name="demo" text="Demo" />
-  </ui:VisualElement>
+  <ui:ScrollView name="level-select" />
 </ui:UXML>
