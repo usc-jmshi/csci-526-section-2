@@ -10,8 +10,8 @@
     <ui:Label text="Left click + drag: rotate layer" />
     <ui:Label text="Right click + drag: rotate cube" />
     <ui:Label text="Scroll: zoom" />
-    <ui:Label text="Space: write to file" />
-    <ui:Label text="2-9: reset with new size" />
+    <ui:Label text="Space: save level" />
+    <ui:Label text="2-9: clear with new size" />
     <ui:Label text="Hover + r/g/b/y/o/w: set color" />
     <ui:Label text="Hover + s/e: set start/end" />
     <ui:Label text="Hover + d: unset color/start/end" />

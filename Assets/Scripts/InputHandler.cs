@@ -53,7 +53,7 @@ public class InputHandler: MonoBehaviour {
         Cube.Instance.SetHoveredSubCubeSquare(Square.None);
         Cube.Instance.SetHoveredSubCubeSpecialSquare(SpecialSquare.None);
       } else if (Keyboard.current.spaceKey.wasPressedThisFrame) {
-        Cube.Instance.WriteLevelToFile();
+        GameManager.Instance.SaveCustomLevel();
       } else if (Keyboard.current.digit2Key.wasPressedThisFrame) {
         Cube.Instance.Clear(2);
       } else if (Keyboard.current.digit3Key.wasPressedThisFrame) {

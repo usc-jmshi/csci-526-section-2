@@ -5,9 +5,8 @@
   xmlns:uie="UnityEditor.UIElements"
   xsi:noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd"
 >
-  <Style src="/Assets/UI/LevelSelect.uss" />
-  <ui:VisualElement name="container">
-    <ui:Label text="Levels" />
-    <ui:ScrollView name="level-select" />
+  <Style src="/Assets/UI/NewCustomLevelName.uss" />
+  <ui:VisualElement>
+    <ui:TextField name="new-custom-level-name" placeholder-text="Enter new level name" max-length="32"/>
   </ui:VisualElement>
 </ui:UXML>

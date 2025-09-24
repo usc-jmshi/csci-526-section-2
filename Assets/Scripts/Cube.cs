@@ -146,12 +146,7 @@ public class Cube: MonoBehaviour {
     }
   }
 
-  public void WriteLevelToFile() {
-    // TODO: non-editor support
-    if (!Application.isEditor || string.IsNullOrEmpty(GameManager.Instance.LevelFileName)) {
-      return;
-    }
-
+  public Level GetLevel() {
     Level level = new(_size);
 
     for (int i = 0; i < _size; i++) {
@@ -172,11 +167,7 @@ public class Cube: MonoBehaviour {
       }
     }
 
-    string levelJSON = JsonUtility.ToJson(level, true);
-
-    File.WriteAllText($"{Application.dataPath}/Resources/Levels/{GameManager.Instance.LevelFileName}.json", levelJSON);
-
-    NotificationUI.Instance.Notify("Write", Color.green);
+    return level;
   }
 
   public void Clear(int size) {

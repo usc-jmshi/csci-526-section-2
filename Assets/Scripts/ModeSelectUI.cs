@@ -4,22 +4,22 @@ using UnityEngine.UIElements;
 
 [RequireComponent(typeof(UIDocument))]
 public class ModeSelectUI: MonoBehaviour {
-  private Button _switchModeBtn;
+  private Button _modeSelectBtn;
 
   private void OnEnable() {
     UIDocument uiDoc = GetComponent<UIDocument>();
 
-    _switchModeBtn = uiDoc.rootVisualElement.Q<Button>("switch-mode");
+    _modeSelectBtn = uiDoc.rootVisualElement.Q<Button>("mode-select");
 
-    _switchModeBtn.RegisterCallback<ClickEvent>(OnClickEvent);
+    _modeSelectBtn.RegisterCallback<ClickEvent>(OnClickEvent);
   }
 
   private void OnDisable() {
-    _switchModeBtn.UnregisterCallback<ClickEvent>(OnClickEvent);
+    _modeSelectBtn.UnregisterCallback<ClickEvent>(OnClickEvent);
   }
 
   private void Start() {
-    _switchModeBtn.text = GameManager.Instance.IsLevelEditor ? "Switch to Game" : "Switch to Level Editor";
+    _modeSelectBtn.text = GameManager.Instance.IsLevelEditor ? "Switch to Game" : "Switch to Level Editor";
   }
 
   private void OnClickEvent(ClickEvent evt) {

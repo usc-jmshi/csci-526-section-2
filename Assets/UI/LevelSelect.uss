@@ -1,12 +1,33 @@
-ScrollView {
+#container {
   flex-direction: column;
-  width: auto;
   position: absolute;
   right: 0px;
-  height: 50%;
+}
+
+#level-select {
+  flex-direction: column;
+  height: 256px;
 }
 
 Button {
   -unity-font-definition: url("/Assets/Fonts/RubikMonoOne-Regular.ttf");
   font-size: 12px;
+}
+
+.button-container {
+  flex-direction: row;
+}
+
+.level-button {
+  width: 224px;
+}
+
+.delete-button {
+  width: 32px;
+}
+
+Label {
+  -unity-font-definition: url("/Assets/Fonts/RubikMonoOne-Regular.ttf");
+  font-size: 12px;
+  -unity-text-align: middle-center;
 }

@@ -1,9 +1,10 @@
 VisualElement {
-  flex-direction: column;
   position: absolute;
+  right: 0px;
 }
 
-Label {
+#new-custom-level-name {
   -unity-font-definition: url("/Assets/Fonts/RubikMonoOne-Regular.ttf");
   font-size: 12px;
+  width: 256px;
 }
