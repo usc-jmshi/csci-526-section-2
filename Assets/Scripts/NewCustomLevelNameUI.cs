@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 public class NewCustomLevelNameUI: MonoBehaviour {
   public static NewCustomLevelNameUI Instance { get; private set; }
 
-  public bool IsFocused => _newCustomLevelNameTextField.panel.focusController.focusedElement == _newCustomLevelNameTextField;
+  public bool IsFocused => _newCustomLevelNameTextField.focusController.focusedElement == _newCustomLevelNameTextField;
 
   private TextField _newCustomLevelNameTextField;
   private Button _saveButton;

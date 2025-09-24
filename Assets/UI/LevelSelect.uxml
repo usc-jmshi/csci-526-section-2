@@ -8,6 +8,6 @@
   <Style src="/Assets/UI/LevelSelect.uss" />
   <ui:VisualElement name="container">
     <ui:Label text="Levels" />
-    <ui:ScrollView name="level-select" />
+    <ui:ScrollView name="level-select" vertical-scroller-visibility="AlwaysVisible" mouse-wheel-scroll-size="0" />
   </ui:VisualElement>
 </ui:UXML>
