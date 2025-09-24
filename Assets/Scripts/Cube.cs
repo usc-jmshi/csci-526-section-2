@@ -41,6 +41,7 @@ public class Cube: MonoBehaviour {
   private float _totalLayerRotation;
   private Coroutine _unselectCoroutine;
   private int _size;
+  private Quaternion _startRotation;
 
   public void SelectSubCube() {
     if (_isRotatingCube || _selectedSubCube != null || _selectedLayer != null || _unselectCoroutine != null) {
@@ -78,6 +79,7 @@ public class Cube: MonoBehaviour {
   public void Drag(Vector2 delta) {
     if (_selectedSubCube != null && _unselectCoroutine == null) {
       if (_selectedLayer == null) {
+        // TODO: improve layer selection
         if (delta.sqrMagnitude > SelectLayerDragThreshold) {
           SelectLayer(delta);
         }
@@ -202,6 +204,7 @@ public class Cube: MonoBehaviour {
     _size = level.Size;
     _subCubes = new SubCube[_size, _size, _size];
     _starts.Clear();
+    transform.localRotation = _startRotation;
 
     float bound = (_size - 1) / 2f;
 
@@ -611,6 +614,8 @@ public class Cube: MonoBehaviour {
 
   private void Awake() {
     Instance = this;
+
+    _startRotation = transform.localRotation;
   }
 
   private void Start() {
