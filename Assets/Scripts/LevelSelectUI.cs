@@ -27,7 +27,7 @@ public class LevelSelectUI: MonoBehaviour {
       };
 
       levelBtn.RegisterCallback<ClickEvent>(OnClickEvent);
-      levelBtn.AddToClassList("level-button");
+      levelBtn.AddToClassList("built-in-level-button");
 
       _levelSelectScrollView.Add(levelBtn);
     }
@@ -46,7 +46,7 @@ public class LevelSelectUI: MonoBehaviour {
       };
 
       levelBtn.RegisterCallback<ClickEvent>(OnClickEvent);
-      levelBtn.AddToClassList("level-button");
+      levelBtn.AddToClassList("custom-level-button");
 
       Button deleteBtn = new() {
         text = "X",

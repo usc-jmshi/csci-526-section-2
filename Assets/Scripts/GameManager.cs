@@ -31,7 +31,7 @@ public class GameManager: MonoBehaviour {
   }
 
   public void SaveCustomLevel() {
-    if (string.IsNullOrEmpty(NewCustomLevelName)) {
+    if (string.IsNullOrWhiteSpace(NewCustomLevelName)) {
       return;
     }
 

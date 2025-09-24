@@ -3,6 +3,10 @@ using UnityEngine.InputSystem;
 
 public class InputHandler: MonoBehaviour {
   private void Update() {
+    if (NewCustomLevelNameUI.Instance?.IsFocused ?? false) {
+      return;
+    }
+
     if (!Cube.Instance.IsLoaded) {
       return;
     }
@@ -52,8 +56,6 @@ public class InputHandler: MonoBehaviour {
       } else if (Keyboard.current.dKey.wasPressedThisFrame) {
         Cube.Instance.SetHoveredSubCubeSquare(Square.None);
         Cube.Instance.SetHoveredSubCubeSpecialSquare(SpecialSquare.None);
-      } else if (Keyboard.current.spaceKey.wasPressedThisFrame) {
-        GameManager.Instance.SaveCustomLevel();
       } else if (Keyboard.current.digit2Key.wasPressedThisFrame) {
         Cube.Instance.Clear(2);
       } else if (Keyboard.current.digit3Key.wasPressedThisFrame) {

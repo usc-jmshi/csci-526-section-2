@@ -1,7 +1,7 @@
 #container {
   flex-direction: column;
   position: absolute;
-  right: 0px;
+  right: 4px;
 }
 
 #level-select {
@@ -12,13 +12,19 @@
 Button {
   -unity-font-definition: url("/Assets/Fonts/RubikMonoOne-Regular.ttf");
   font-size: 12px;
+  margin-left: 0px;
+  margin-right: 0px;
+}
+
+.built-in-level-button {
+  width: 256px;
 }
 
 .button-container {
   flex-direction: row;
 }
 
-.level-button {
+.custom-level-button {
   width: 224px;
 }
 
