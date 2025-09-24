@@ -7,6 +7,6 @@
 >
   <Style src="/Assets/UI/Notification.uss" />
   <ui:VisualElement>
-    <ui:Label name="notification" />
+    <ui:Label name="label" />
   </ui:VisualElement>
 </ui:UXML>

@@ -3,24 +3,24 @@ using UnityEngine.UIElements;
 
 [RequireComponent(typeof(UIDocument))]
 public class LevelSelectUI: MonoBehaviour {
-  public static LevelSelectUI Instance { get; private set; }
-
-  private struct ButtonData {
+  private struct LevelButtonData {
     public bool Custom;
     public int Index;
   }
 
-  private ScrollView _levelSelectScrollView;
+  public static LevelSelectUI Instance { get; private set; }
+
+  private ScrollView _scrollView;
 
   public void Refresh() {
-    _levelSelectScrollView.Clear();
+    _scrollView.Clear();
 
     string[] builtInLevelNames = GameManager.Instance.GetBuiltInLevelNames();
 
     for (int i = 0; i < builtInLevelNames.Length; i++) {
       Button levelBtn = new() {
         text = builtInLevelNames[i],
-        userData = new ButtonData {
+        userData = new LevelButtonData {
           Custom = false,
           Index = i
         }
@@ -29,7 +29,7 @@ public class LevelSelectUI: MonoBehaviour {
       levelBtn.RegisterCallback<ClickEvent>(OnClickEvent);
       levelBtn.AddToClassList("built-in-level-button");
 
-      _levelSelectScrollView.Add(levelBtn);
+      _scrollView.Add(levelBtn);
     }
 
     for (int i = 0; i < GameManager.Instance.CustomLevelNames.Length; i++) {
@@ -39,7 +39,7 @@ public class LevelSelectUI: MonoBehaviour {
 
       Button levelBtn = new() {
         text = GameManager.Instance.CustomLevelNames[i],
-        userData = new ButtonData {
+        userData = new LevelButtonData {
           Custom = true,
           Index = i
         }
@@ -59,18 +59,18 @@ public class LevelSelectUI: MonoBehaviour {
       btnContainer.Add(levelBtn);
       btnContainer.Add(deleteBtn);
 
-      _levelSelectScrollView.Add(btnContainer);
+      _scrollView.Add(btnContainer);
     }
   }
 
   private void OnEnable() {
     UIDocument uiDoc = GetComponent<UIDocument>();
 
-    _levelSelectScrollView = uiDoc.rootVisualElement.Q<ScrollView>("level-select");
+    _scrollView = uiDoc.rootVisualElement.Q<ScrollView>("scroll-view");
   }
 
   private void OnDisable() {
-    foreach (VisualElement child in _levelSelectScrollView.Children()) {
+    foreach (VisualElement child in _scrollView.Children()) {
       if (child is Button button) {
         button.UnregisterCallback<ClickEvent>(OnClickEvent);
       } else {
@@ -92,8 +92,8 @@ public class LevelSelectUI: MonoBehaviour {
   private void OnClickEvent(ClickEvent evt) {
     Button btn = (Button) evt.target;
 
-    if (btn.userData is ButtonData data) {
-      Level level = data.Custom ? GameManager.Instance.GetCustomLevel(data.Index) : GameManager.Instance.GetBuiltInLevel(data.Index);
+    if (btn.userData is LevelButtonData levelBtnData) {
+      Level level = levelBtnData.Custom ? GameManager.Instance.GetCustomLevel(levelBtnData.Index) : GameManager.Instance.GetBuiltInLevel(levelBtnData.Index);
 
       Cube.Instance.Load(level);
     } else {

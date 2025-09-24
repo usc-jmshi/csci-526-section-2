@@ -7,6 +7,6 @@
 >
   <Style src="/Assets/UI/ModeSelect.uss" />
   <ui:VisualElement>
-    <ui:Button name="mode-select" />
+    <ui:Button name="switch-mode-button" />
   </ui:VisualElement>
 </ui:UXML>

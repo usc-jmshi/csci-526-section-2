@@ -4,13 +4,13 @@ VisualElement {
   right: 0px;
 }
 
-#new-custom-level-name {
+#level-name-text-field {
   -unity-font-definition: url("/Assets/Fonts/RubikMonoOne-Regular.ttf");
   font-size: 12px;
   width: 256px;
 }
 
-#save {
+#save-level-button {
   -unity-font-definition: url("/Assets/Fonts/RubikMonoOne-Regular.ttf");
   font-size: 12px;
   width: 128px;

@@ -4,7 +4,7 @@
   right: 4px;
 }
 
-#level-select {
+#scroll-view {
   flex-direction: column;
   height: 256px;
 }

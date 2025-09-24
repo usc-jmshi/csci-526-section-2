@@ -4,7 +4,7 @@ VisualElement {
   bottom: 0px;
 }
 
-#mode-select {
+#switch-mode-button {
   -unity-font-definition: url("/Assets/Fonts/RubikMonoOne-Regular.ttf");
   font-size: 12px;
   width: 256px;

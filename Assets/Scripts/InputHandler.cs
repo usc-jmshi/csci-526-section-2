@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 
 public class InputHandler: MonoBehaviour {
   private void Update() {
-    if (NewCustomLevelNameUI.Instance?.IsFocused ?? false) {
+    if (LevelSaveUI.Instance?.IsFocused ?? false) {
       return;
     }
 

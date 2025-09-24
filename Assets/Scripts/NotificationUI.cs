@@ -8,7 +8,7 @@ public class NotificationUI: MonoBehaviour {
 
   private const float NotifyDuration = 0.5f;
 
-  private Label _notifLabel;
+  private Label _label;
   private Coroutine _notifyCoroutine;
 
   public void Notify(string message, Color color) {
@@ -20,9 +20,9 @@ public class NotificationUI: MonoBehaviour {
   }
 
   private IEnumerator NotifyCoroutine(string message, Color color) {
-    _notifLabel.style.opacity = 1;
-    _notifLabel.style.color = color;
-    _notifLabel.text = message;
+    _label.style.opacity = 1;
+    _label.style.color = color;
+    _label.text = message;
 
     float timer = 0;
 
@@ -30,7 +30,7 @@ public class NotificationUI: MonoBehaviour {
       yield return null;
 
       timer += Time.deltaTime;
-      _notifLabel.style.opacity = Mathf.Clamp(_notifLabel.style.opacity.value - Time.deltaTime / NotifyDuration, 0, 1);
+      _label.style.opacity = Mathf.Clamp(_label.style.opacity.value - Time.deltaTime / NotifyDuration, 0, 1);
     } while (timer < NotifyDuration);
 
     _notifyCoroutine = null;
@@ -39,7 +39,7 @@ public class NotificationUI: MonoBehaviour {
   private void OnEnable() {
     UIDocument uiDoc = GetComponent<UIDocument>();
 
-    _notifLabel = uiDoc.rootVisualElement.Q<Label>("notification");
+    _label = uiDoc.rootVisualElement.Q<Label>("label");
   }
 
   private void Awake() {
