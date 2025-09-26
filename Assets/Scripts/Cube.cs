@@ -15,9 +15,17 @@ public class Cube: MonoBehaviour {
     public Axis CubeRotationAxis;
   }
 
-  private struct StartNode {
+  private class StartNode {
     public SubCube SubCube;
     public Side SubCubeSide;
+    public Node End;
+  }
+
+  private class Node {
+    public SubCube SubCube;
+    public Side CubeSide;
+    public Side SubCubeSide;
+    public Node Previous;
   }
 
   public static Cube Instance { get; private set; }
@@ -98,39 +106,62 @@ public class Cube: MonoBehaviour {
       return;
     }
 
-    bool overallPass = true;
+    bool pass = true;
 
     foreach (StartNode startNode in _starts) {
+      if (startNode.End == null) {
+        pass = false;
+
+        break;
+      }
+    }
+
+    NotificationUI.Instance.Notify(pass ? "Pass" : "Fail", pass ? Color.green : Color.red);
+  }
+
+  private void Evaluate() {
+    if (GameManager.Instance.IsLevelEditor) {
+      return;
+    }
+
+    foreach (StartNode startNode in _starts) {
+      for (Node node = startNode.End; node != null; node = node.Previous) {
+        node.SubCube.Unhighlight(node.SubCubeSide);
+      }
+
+      startNode.End = null;
+
       Side startCubeSide = startNode.SubCube.SubCubeSideToCubeSide(startNode.SubCubeSide);
       Square square = startNode.SubCube.GetSquare(startCubeSide);
       bool[,,,] seen = new bool[_size, _size, _size, Enum.GetValues(typeof(Side)).Length];
-      bool startNodePass = false;
 
-      Queue<SubCubeSelection> bfsQueue = new();
+      Queue<Node> bfsQueue = new();
 
       bfsQueue.Enqueue(new() {
         SubCube = startNode.SubCube,
-        CubeSide = startCubeSide
+        CubeSide = startCubeSide,
+        SubCubeSide = startNode.SubCubeSide,
+        Previous = null
       });
 
       while (bfsQueue.Count > 0) {
-        SubCubeSelection node = bfsQueue.Dequeue();
+        Node node = bfsQueue.Dequeue();
+
+        if (seen[node.SubCube.I, node.SubCube.J, node.SubCube.K, (int) node.CubeSide]) {
+          continue;
+        }
 
         seen[node.SubCube.I, node.SubCube.J, node.SubCube.K, (int) node.CubeSide] = true;
 
         if (node.SubCube.GetSpecialSquare(node.CubeSide) == SpecialSquare.End) {
-          startNodePass = true;
+          startNode.End = node;
 
           break;
         }
 
-        SubCubeSelection[] neighbors = GetNeighbors(node);
+        Node[] neighbors = GetNeighbors(node);
 
-        foreach (SubCubeSelection neighbor in neighbors) {
-          if (seen[neighbor.SubCube.I, neighbor.SubCube.J, neighbor.SubCube.K, (int) neighbor.CubeSide]) {
-            continue;
-          }
-
+        foreach (Node neighbor in neighbors) {
           if (neighbor.SubCube.GetSquare(neighbor.CubeSide) != square) {
             continue;
           }
@@ -139,14 +170,10 @@ public class Cube: MonoBehaviour {
         }
       }
 
-      if (!startNodePass) {
-        overallPass = false;
-
-        break;
+      for (Node node = startNode.End; node != null; node = node.Previous) {
+        node.SubCube.Highlight(node.SubCubeSide);
       }
     }
-
-    NotificationUI.Instance.Notify(overallPass ? "Pass" : "Fail", overallPass ? Color.green : Color.red);
   }
 
   public void SetHoveredSubCubeSquare(Square square) {
@@ -239,7 +266,8 @@ public class Cube: MonoBehaviour {
             if (specialSquare == SpecialSquare.Start) {
               _starts.Add(new() {
                 SubCube = subCube,
-                SubCubeSide = side
+                SubCubeSide = side,
+                End = null
               });
             }
           }
@@ -248,6 +276,8 @@ public class Cube: MonoBehaviour {
         }
       }
     }
+
+    Evaluate();
   }
 
   private bool GetHoveredSubCube(out SubCube subCube, out Side cubeSide) {
@@ -283,8 +313,8 @@ public class Cube: MonoBehaviour {
     return false;
   }
 
-  private SubCubeSelection[] GetNeighbors(SubCubeSelection node) {
-    SubCubeSelection[] neighbors = new SubCubeSelection[4];
+  private Node[] GetNeighbors(Node node) {
+    Node[] neighbors = new Node[4];
 
     switch (node.CubeSide) {
       case Side.Top:
@@ -356,6 +386,11 @@ public class Cube: MonoBehaviour {
       default: {
           throw new InvalidOperationException("Invalid side");
         }
+    }
+
+    foreach (Node neighbor in neighbors) {
+      neighbor.Previous = node;
+      neighbor.SubCubeSide = neighbor.SubCube.CubeSideToSubCubeSide(neighbor.CubeSide);
     }
 
     return neighbors;
@@ -514,6 +549,8 @@ public class Cube: MonoBehaviour {
     }
 
     _selectedSubCube = null;
+
+    Evaluate();
 
     _unselectCoroutine = null;
   }

@@ -32,6 +32,7 @@ public class SubCube: MonoBehaviour {
 
     _mrs[(int) subCubeSide].GetPropertyBlock(matPropBlock);
     matPropBlock.SetTexture(Utils.BaseMapShaderPropID, texture);
+    matPropBlock.SetTexture(Utils.EmissionMapShaderPropID, texture);
     _mrs[(int) subCubeSide].SetPropertyBlock(matPropBlock);
 
     _specialSquares[(int) subCubeSide] = specialSquare;
@@ -77,7 +78,24 @@ public class SubCube: MonoBehaviour {
     return cubeSide;
   }
 
-  private Side CubeSideToSubCubeSide(Side cubeSide) {
+  public void Highlight(Side subCubeSide) {
+    MaterialPropertyBlock matPropBlock = new();
+    Color color = Utils.GetColor(_squares[(int) subCubeSide]);
+
+    _mrs[(int) subCubeSide].GetPropertyBlock(matPropBlock);
+    matPropBlock.SetColor(Utils.EmissionColorShaderPropID, color);
+    _mrs[(int) subCubeSide].SetPropertyBlock(matPropBlock);
+  }
+
+  public void Unhighlight(Side subCubeSide) {
+    MaterialPropertyBlock matPropBlock = new();
+
+    _mrs[(int) subCubeSide].GetPropertyBlock(matPropBlock);
+    matPropBlock.SetColor(Utils.EmissionColorShaderPropID, Color.black);
+    _mrs[(int) subCubeSide].SetPropertyBlock(matPropBlock);
+  }
+
+  public Side CubeSideToSubCubeSide(Side cubeSide) {
     Matrix4x4 subCubeToCubeInvT = new();
 
     Utils.InverseTranspose3DAffine(Cube.Instance.transform.worldToLocalMatrix * transform.localToWorldMatrix, ref subCubeToCubeInvT);
